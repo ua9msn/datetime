@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    
+    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+    
+    <script src="../src/index.js"></script>
+    
+    <script>
+
+        $(function(){
+            $('#basic').datetime({
+                locale: 'ru',
+                format:  'dd L yyyy HH:mm:ss',
+               // datetime: Date.now(),
+                minTime: new Date('Jan 01 2017 08:00:00 UTC'),
+                maxTime: new Date('Jan 01 2017 23:00:00 UTC'),
+            })
+                .on('change', function(e, arg){
+                    console.log(arg);
+                });
+
+
+        })
+    
+    </script>
+
+
+</head>
+<body>
+    
+    <div class="basic">
+        <input type="text" id="basic" style="width: 250px; margin: 50px 0;">
+    </div>
+
+</body>
+</html>
