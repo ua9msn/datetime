@@ -1,0 +1,12 @@
+# ignore everyting
+/.idea
+/docs
+/coverage
+/node_modules
+/spec
+/src
+/test
+.babelrc
+.eslintrc.json
+.npmignore
+karma.conf.js
