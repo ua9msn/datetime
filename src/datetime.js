@@ -676,11 +676,11 @@
             this.options.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
 
             if(!isNaN(this.options.minTime)){
-                this.options.maxTime = isNaN(this.options.maxTime) ? this.options.maxTime : DAYLEN;
+                this.options.maxTime = isNaN(this.options.maxTime) ? DAYLEN : this.options.maxTime;
             }
 
             if(!isNaN(this.options.maxTime)){
-                this.options.minTime = isNaN(this.options.minTime) ? this.options.minTime : 0;
+                this.options.minTime = isNaN(this.options.minTime) ? 0: this.options.minTime;
             }
 
 

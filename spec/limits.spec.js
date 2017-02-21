@@ -179,7 +179,7 @@ describe('Fit', function(){
 
         plug.setOptions( options ) ;
         const resultDT = plug._fitToLmits(dt);
-        expect( resultDT ).toEqual( new Date('Jan 01 2017 00:00:00 UTC') );
+        expect( resultDT ).toEqual( new Date('Jan 01 2017 23:00:00 UTC') );
 
     });
 
