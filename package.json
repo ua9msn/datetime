@@ -2,12 +2,12 @@
   "name": "datetime",
   "version": "1.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "datetime.min.js",
   "scripts": {
     "test": "karma start --singleRun",
-    "build:prod": "BABEL_ENV=production babel src -d dist ",
-    "build:stag": "BABEL_ENV=production babel src -d dist --source-maps",
-    "build:dev": "babel src -d dist"
+    "build:prod": "BABEL_ENV=production babel src -o dist/datetime.min.js ",
+    "build:stg": "BABEL_ENV=production babel src -o dist/datetime.stg.js --source-maps",
+    "build:dev": "babel src -o dist/datetime.js"
   },
   "author": "",
   "license": "ISC",
