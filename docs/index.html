@@ -1,39 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
+    <title>DateTime</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.3.1/css/bulma.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+</head>
+<body>
+    
+    <div class="main container">
+    
+        <header class="header ">
+            <h1 class="title">Date/Time input</h1>
+            <h2 class="subtitle">keyboard driven experience</h2>
+        </header>
+    
+        <hr>
+    
+        <section class="section">
+            <h2 class="title">Options</h2>
+            <div class="content">
+                
+<pre><code class="js">defaults   = {
+    datetime: NaN,
+    locale:   navigator.language,
+    format:   'dd.MM.yyyy HH:mm:ss',
+    minDate:  NaN,
+    maxDate:  NaN,
+    minTime:  NaN,
+    maxTime:  NaN
+}</code></pre>
+            </div>
+        </section>
+        <hr>
+        
+        <section class="section">
+            <h2 class="title">Interations</h2>
+            <div class="content">
+                <p>Plugin supports numeric input, arrow keys and mouse scroll. </p>
+            </div>
+        </section>
+        <hr>
+        
+        <section class="section">
+            <h2 class="title">Examples</h2>
+            <h3 class="subtitle">Empty options</h3>
+            <div class="columns is-gapless">
+                <div class="column is-one-quarter">
+                    <input class="input" type="text" id="defaults" style="width: 250px;">
+                </div>
+                <div class="column">
+                    <pre><code class="js">$('selector').datetime();</code></pre>
+                </div>
+            </div>
+            <hr>
+           
+            <h3 class="subtitle">Default datetime</h3>
+            <div class="columns is-gapless">
+                <div class="column is-one-quarter">
+                    <input class="input" type="text" id="x1" style="width: 250px;">
+                </div>
+                <div class="column">
+                    <pre><code class="js">$('selector').datetime({ datetime: 0 });</code></pre>
+                </div>
+            </div>
+            <hr>
+           
+            <h3 class="subtitle">Format and locale</h3>
+            <div class="columns is-gapless">
+                <div class="column is-one-quarter">
+                    <input class="input" type="text" id="x2" style="width: 250px;">
+                </div>
+                <div class="column">
+                    <pre><code class="js">$('selector').datetime({
+                datetime: '01/03/1976 21:53',
+                locale: 'ru',
+                format: 'dd L yyyy HH:mm '
+            });</code></pre>
+                </div>
+            </div>
+            <hr>
+            
+            <h3 class="subtitle">Min and Max date</h3>
+            <div class="columns is-gapless">
+                <div class="column is-one-quarter">
+                    <input class="input" type="text" id="x3" style="width: 250px;">
+                </div>
+                <div class="column">
+<pre><code class="js">$('selector').datetime({
+    datetime: Date.now(),
+    minDate: Date.now()
+});</code></pre>
+                </div>
+            </div>
+            <hr>
+           
+        </section>
+        
+    
+        <footer class="footer">
+            <div class="container">
+                <div class="content has-text-centered">
+                    <p>
+                        <strong>Date/Time Input</strong> by <a href="https://ua9msn.github.io/datetime">Serge Balykov</a>. The source code is licensed
+                        <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+                    </p>
+                    <p>
+                        <a class="icon" href="https://github.com/ua9msn/datetime">
+                            <i class="fa fa-github"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </footer>
+        
+    </div>
+   
+    
+    
+    
     <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
     <script src="datetime.min.js"></script>
-    
-    <link rel="stylesheet" href="index.css">
-    
     <script>
 
         $(function(){
-            $('#basic').datetime({
-                locale:  'ru',
-                format:  'dd L yyyy HH:mm:ss',
-                // datetime: Date.now(),
-                minTime: new Date('Jan 01 2017 08:00:00 UTC'),
-                maxTime: new Date('Jan 01 2017 23:00:00 UTC'),
-            })
-            .on('change', function(e, arg){
-                console.log(arg);
+
+            hljs.initHighlightingOnLoad();
+           
+            $('#defaults').datetime();
+            $('#x1').datetime({
+                datetime: 0
+            });
+            $('#x2').datetime({
+                datetime: '01/03/1976 21:53',
+                locale: 'ru',
+                format: 'dd L yyyy HH:mm '
+            });
+            $('#x3').datetime({
+                datetime: Date.now(),
+                minDate: Date.now()
             });
 
         })
     
     </script>
-
-
-</head>
-<body>
-    
-    
-    
-    <div class="basic">
-        <input type="text" id="basic" style="width: 250px; margin: 50px 0;">
-    </div>
-
 </body>
 </html>
+

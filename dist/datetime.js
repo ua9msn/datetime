@@ -112,7 +112,6 @@
             },
 
             _handleKeydown: function _handleKeydown(e) {
-                e.stopPropagation();
                 e.preventDefault();
                 var spare = this._ensureValueExist();
 
@@ -158,6 +157,9 @@
             },
 
             _handleMousewheel: function _handleMousewheel(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 var direction = Math.sign(e.wheelDelta);
 
                 var spare = this._ensureValueExist();
@@ -671,11 +673,11 @@
                 this.options.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
 
                 if (!isNaN(this.options.minTime)) {
-                    this.options.maxTime = isNaN(this.options.maxTime) ? this.options.maxTime : DAYLEN;
+                    this.options.maxTime = isNaN(this.options.maxTime) ? DAYLEN : this.options.maxTime;
                 }
 
                 if (!isNaN(this.options.maxTime)) {
-                    this.options.minTime = isNaN(this.options.minTime) ? this.options.minTime : 0;
+                    this.options.minTime = isNaN(this.options.minTime) ? 0 : this.options.minTime;
                 }
 
                 this._refresh();
