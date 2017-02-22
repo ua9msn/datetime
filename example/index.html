@@ -6,14 +6,14 @@
     
     <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
     
-    <script src="../dist/datetime.min.js"></script>
+    <script src="../dist/datetime.js"></script>
     
     <script>
 
         $(function(){
             $('#basic').datetime({
                 locale: 'ru',
-                format:  'dd L yyyy HH:mm:ss',
+                format:  'dd L yyyy HH:mm    ',
                // datetime: Date.now(),
                 minTime: new Date('Jan 01 2017 08:00:00 UTC'),
                 maxTime: new Date('Jan 01 2017 23:00:00 UTC'),

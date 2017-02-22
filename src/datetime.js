@@ -351,7 +351,7 @@
             // undefined and null check
             if(datetime == undefined) return result;
 
-            const pattern = format.match(/\w+|\S|\s/g);
+            const pattern = format.trim().match(/\w+|\S|\s/g);
 
             const
                 Date      = datetime.getUTCDate(),
