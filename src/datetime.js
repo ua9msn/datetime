@@ -96,7 +96,6 @@
         },
 
         _handleKeydown: function(e){
-            e.stopPropagation();
             e.preventDefault();
             const spare = this._ensureValueExist();
 
@@ -143,6 +142,9 @@
         },
 
         _handleMousewheel: function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             const direction = Math.sign(e.wheelDelta);
 
             const spare = this._ensureValueExist();
