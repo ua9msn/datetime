@@ -6,6 +6,8 @@
 /spec
 /src
 /test
+/vendor
+.travis.yml
 .babelrc
 .eslintrc.json
 .npmignore
