@@ -1,7 +1,6 @@
 ## Date/Time input
-[![NPM Version][npm-badge]][npm]
-[![Build Status][travis-badge]][travis]
-[![Test Coverage][coveralls-badge]][coveralls]
+[![Build Status](https://travis-ci.org/ua9msn/datetime.svg?branch=master)](https://travis-ci.org/ua9msn/datetime)
+
 For the demo and docs please visit https://ua9msn.github.io/datetime
 
 ### What is it
