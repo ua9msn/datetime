@@ -1,4 +1,7 @@
 ## Date/Time input
+[![NPM Version][npm-badge]][npm]
+[![Build Status][travis-badge]][travis]
+[![Test Coverage][coveralls-badge]][coveralls]
 For the demo and docs please visit https://ua9msn.github.io/datetime
 
 ### What is it
