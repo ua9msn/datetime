@@ -1,6 +1,6 @@
 {
   "name": "datetime-entry",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "datetime.min.js",
   "scripts": {
@@ -13,11 +13,16 @@
   },
   "author": "Serge Balykov (ua9msn@gmail.com)",
   "homepage": "https://github.com/ua9msn/datetime",
-  "keywords": ["datetime", "date-time", "datepicker", "timepicker" ],
+  "keywords": [
+    "datetime",
+    "date-time",
+    "datepicker",
+    "timepicker"
+  ],
   "license": "MIT",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/ua9msn/datetime"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ua9msn/datetime"
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",
