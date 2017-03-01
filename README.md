@@ -1,4 +1,6 @@
 ## Date/Time input
+Enter formatted date and time without pickers.
+
 [![Build Status](https://travis-ci.org/ua9msn/datetime.svg?branch=master)](https://travis-ci.org/ua9msn/datetime)
 
 For the demo and docs please visit https://ua9msn.github.io/datetime
