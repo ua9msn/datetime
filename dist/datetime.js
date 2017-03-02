@@ -57,6 +57,10 @@
             this.currentSpareIndex = 0;
             this.spares = [];
 
+            this._handleMouseDown = this._handleMouseDown.bind(this);
+            this._handleKeydown = this._handleKeydown.bind(this);
+            this._handleMousewheel = this._handleMousewheel.bind(this);
+
             this._init();
             //clone value
 
@@ -70,9 +74,9 @@
                 this.element.setSelectionRange(0, 0);
 
                 // this.element.addEventListener('select', this.handleSelection.bind(this));
-                this.element.addEventListener('mouseup', this._handleMouseDown.bind(this));
-                this.element.addEventListener('keydown', this._handleKeydown.bind(this));
-                this.element.addEventListener('mousewheel', this._handleMousewheel.bind(this));
+                this.element.addEventListener('mouseup', this._handleMouseDown);
+                this.element.addEventListener('keydown', this._handleKeydown);
+                this.element.addEventListener('mousewheel', this._handleMousewheel);
             },
 
             _refresh: function _refresh() {
@@ -684,9 +688,11 @@
             },
 
             destroy: function destroy() {
-                this.element.addEventListener('mouseup', this._handleMouseDown);
-                this.element.addEventListener('keydown', this._handleKeydown);
-                this.element.addEventListener('mousewheel', this._handleMousewheel);
+                this.element.removeEventListener('mouseup', this._handleMouseDown);
+                this.element.removeEventListener('keydown', this._handleKeydown);
+                this.element.removeEventListener('mousewheel', this._handleMousewheel);
+
+                $(this.element).removeData(pluginName);
             }
 
         };

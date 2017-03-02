@@ -17,7 +17,6 @@
             <h1 class="title">Date/Time input</h1>
             <h2 class="subtitle">keyboard driven experience</h2>
         </header>
-    
         <hr>
     
         <section class="section">
@@ -35,6 +34,10 @@
 }</code></pre>
             </div>
             <p>In according to <a>http://cldr.unicode.org/translation/date-time</a>, the following table lists the characters that you can use in a pattern for formatting or parsing strings in relation to a dateTime.</p>
+            <div class="notification is-warning">
+                In next version this patterns will be updated to <a>http://userguide.icu-project.org/formatparse/datetime</a>
+            </div>
+    
             <table class="table is-bordered">
                 <tbody>
                 <tr><th>Symbol</th><th>Meaning</th><th>Format</th><th>Example</th></tr>
@@ -173,6 +176,18 @@
         <hr>
         
         <section class="section">
+            <h2 class="title">Methods</h2>
+            <div class="content">
+                <p>setTime, getTime, setOptions, destroy</p>
+<pre><code class="js">$('selector').datetime('setTime', Date || timestamp || timestring );
+$('selector').datetime('getTime');
+$('selector').datetime('setOptions', { option: value })
+$('selector').datetime('destroy')</code></pre>
+            </div>
+        </section>
+        <hr>
+        
+        <section class="section">
             <h2 class="title">Interactions</h2>
             <div class="content">
                 <p>Plugin supports numeric input, arrow keys and mouse scroll. </p>
@@ -253,9 +268,6 @@
         </footer>
         
     </div>
-   
-    
-    
     
     <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
     <script src="datetime.min.js"></script>
