@@ -34,11 +34,146 @@
     maxTime:  NaN
 }</code></pre>
             </div>
+            <p>In according to <a>http://cldr.unicode.org/translation/date-time</a>, the following table lists the characters that you can use in a pattern for formatting or parsing strings in relation to a dateTime.</p>
+            <table class="table is-bordered">
+                <tbody>
+                <tr><th>Symbol</th><th>Meaning</th><th>Format</th><th>Example</th></tr>
+                <tr>
+                    <td>yy</td>
+                    <td>2-digit year</td>
+                    <td>dd.M.yy</td>
+                    <td>05.03.<strong>17</strong></td>
+                </tr>
+                <tr>
+                    <td>yyyy</td>
+                    <td>4-digits yeaar</td>
+                    <td>dd.M.yyyy</td>
+                    <td>05.03.<strong>2017</strong></td>
+                </tr>
+                <tr>
+                    <td>M</td>
+                    <td>2-digits month</td>
+                    <td>dd.M.yyyy</td>
+                    <td>05.<strong>03</strong>.2017</td>
+                </tr>
+                <tr>
+                    <td>MM</td>
+                    <td>short month&nbsp;</td>
+                    <td>dd MM yyy</td>
+                    <td>05 <strong>сент.</strong> 2017 <br />
+                        notice that some short month already includes the dot <br />
+                        so recommended format would be 'dd MM yyyy'</td>
+                    
+                </tr>
+                <tr>
+                    <td>MMM</td>
+                    <td>1-letter month&nbsp;</td>
+                    <td>dd MMM yyyy</td>
+                    <td>05 <strong>C</strong> 2017&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>MMMM</td>
+                    <td>full month name</td>
+                    <td>dd MMMM yyyy</td>
+                    <td>05 <strong>январь</strong> 2017</td>
+                </tr>
+                <tr>
+                    <td>L</td>
+                    <td>Stand-Alone month name&nbsp;</td>
+                    <td>dd L yyyy</td>
+                    <td>05 <strong>января</strong> 2017</td>
+                </tr>
+                <tr>
+                    <td>d</td>
+                    <td>1-digit day</td>
+                    <td>d L yyyy</td>
+                    <td><strong>5</strong> января 2017</td>
+                </tr>
+                <tr>
+                    <td>dd</td>
+                    <td>&nbsp;2-digit day</td>
+                    <td>dd L yyyy</td>
+                    <td><strong>05</strong> января 2017</td>
+                </tr>
+                <tr>
+                    <td>EE</td>
+                    <td>&nbsp;short weekday</td>
+                    <td>EE dd L yyyy</td>
+                    <td><strong>чт</strong> 05 января 2017</td>
+                </tr>
+                <tr>
+                    <td>EEE</td>
+                    <td>&nbsp;1-letter weekday</td>
+                    <td>EEE dd L yyyy</td>
+                    <td><strong>Ч</strong> 5 января 2017</td>
+                </tr>
+                <tr>
+                    <td>EEEE</td>
+                    <td>&nbsp;full weekday</td>
+                    <td>&nbsp;EEEE dd L yyyy</td>
+                    <td><strong>четверг</strong>&nbsp;5 января 2017</td>
+                </tr>
+                <tr>
+                    <td>h</td>
+                    <td>1-digi hour in 12 hours format</td>
+                    <td>&nbsp;h:mm:ss</td>
+                    <td><strong>8</strong>:15:33&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>hh</td>
+                    <td>2-digits hour in 12 hours format&nbsp;</td>
+                    <td>&nbsp;hh:mm:ss</td>
+                    <td><strong>08</strong>:15:33&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>H</td>
+                    <td>1-digit hour in 24 hours format&nbsp;</td>
+                    <td>&nbsp;H:mm:ss</td>
+                    <td><strong>8</strong>:15:33</td>
+                </tr>
+                <tr>
+                    <td>HH</td>
+                    <td>2-digit hour in 24 hours format&nbsp;</td>
+                    <td>&nbsp;HH:mm:ss</td>
+                    <td><strong>08</strong>:15:33</td>
+                </tr>
+                <tr>
+                    <td>m</td>
+                    <td>1-digit minute</td>
+                    <td>&nbsp;hh:m:ss</td>
+                    <td>08:<strong>1</strong>:03&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>mm</td>
+                    <td>2-digit minute&nbsp;</td>
+                    <td>hh:mm:ss&nbsp;</td>
+                    <td>08:<strong>01</strong>:03&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>s</td>
+                    <td>1-digit second&nbsp;</td>
+                    <td>hh:mm:s&nbsp;</td>
+                    <td>08:01:<strong>3</strong></td>
+                </tr>
+                <tr>
+                    <td>ss</td>
+                    <td>2-digit second&nbsp;</td>
+                    <td>hh:mm:ss&nbsp;</td>
+                    <td>08:01:<strong>03&nbsp;</strong></td>
+                </tr>
+                <tr>
+                    <td>a</td>
+                    <td>&nbsp;AM/PM</td>
+                    <td>hh:mm:ss a&nbsp;</td>
+                    <td>08:01:03 <strong>AM</strong></td>
+                </tr>
+                </tbody>
+            </table>
         </section>
         <hr>
         
         <section class="section">
-            <h2 class="title">Interations</h2>
+            <h2 class="title">Interactions</h2>
             <div class="content">
                 <p>Plugin supports numeric input, arrow keys and mouse scroll. </p>
             </div>
