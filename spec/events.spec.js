@@ -28,7 +28,7 @@ describe('Events suite', function(){
 
 
     it('For 15 февраля 2017 05:26:52 click between ф and е should select 3, 10 ', function(){
-        
+
         let plug = $input.data().datetime;
 
         let fakeEvent = {
@@ -38,7 +38,7 @@ describe('Events suite', function(){
         };
 
         $input[0].setSelectionRange(4,4);
-        
+
         plug._handleMouseDown(fakeEvent);
 
         expect($input[0].selectionStart).toEqual(3);
@@ -46,6 +46,11 @@ describe('Events suite', function(){
 
 
     });
+
+
+    //  We can not trigger a real event via jasmine. so suppose it works without test :(
+    // it('For CtrlA everything shoud be selected ', function(){
+    // });
 
 
 

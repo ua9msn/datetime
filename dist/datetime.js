@@ -116,18 +116,21 @@
             },
 
             _handleKeydown: function _handleKeydown(e) {
-                e.preventDefault();
+
                 var spare = this._ensureValueExist();
 
                 switch (e.which) {
 
                     case KEY_LEFT:
+                        e.preventDefault();
                         this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function (x) {
                             return x.field !== 'Delimiter';
                         });
                         this._refresh();
                         break;
+
                     case KEY_RIGHT:
+                        e.preventDefault();
                         this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function (x) {
                             return x.field !== 'Delimiter';
                         });
@@ -135,18 +138,30 @@
                         break;
 
                     case KEY_UP:
+                        e.preventDefault();
                         this._crement(1, spare);
                         break;
+
                     case KEY_DOWN:
+                        e.preventDefault();
                         this._crement(-1, spare);
                         break;
 
                     case KEY_DELETE:
+                        e.preventDefault();
                         this.datetime = new Date(NaN);
                         this._refresh();
                         break;
 
+                    case KEY_A:
+                    case KEY_C:
+                        if (!e.ctrlKey) {
+                            e.preventDefault();
+                        }
+                        break;
+
                     default:
+                        e.preventDefault();
                         // ignore non-numbers
                         if (!isFinite(e.key)) return;
                         // ignore ampm

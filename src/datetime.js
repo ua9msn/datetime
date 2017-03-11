@@ -6,35 +6,35 @@
 
     /* eslint-disable no-unused-vars */
     const KEY_TAB       = 9,
-        KEY_ENTER     = 13,
-        KEY_BACKSPACE = 8,
-        KEY_DELETE    = 46,
-        KEY_ESCAPE    = 27,
-        KEY_SPACE     = 32,
-        KEY_DOWN      = 40,
-        KEY_UP        = 38,
-        KEY_LEFT      = 37,
-        KEY_RIGHT     = 39,
-        KEY_A         = 65,
-        KEY_C         = 67,
-        KEY_V         = 86,
-        KEY_D         = 68,
-        KEY_F2        = 113,
-        KEY_INSERT    = 45;
+          KEY_ENTER     = 13,
+          KEY_BACKSPACE = 8,
+          KEY_DELETE    = 46,
+          KEY_ESCAPE    = 27,
+          KEY_SPACE     = 32,
+          KEY_DOWN      = 40,
+          KEY_UP        = 38,
+          KEY_LEFT      = 37,
+          KEY_RIGHT     = 39,
+          KEY_A         = 65,
+          KEY_C         = 67,
+          KEY_V         = 86,
+          KEY_D         = 68,
+          KEY_F2        = 113,
+          KEY_INSERT    = 45;
     /* eslint-enable no-unused-vars */
 
     const DAYLEN = 86400000;
 
     const pluginName = 'datetime',
-        defaults   = {
-            datetime: NaN,
-            locale:   navigator.language,
-            format:   'dd.MM.yyyy HH:mm:ss',
-            minDate:  NaN,
-            maxDate:  NaN,
-            minTime:  NaN,
-            maxTime:  NaN
-        };
+          defaults   = {
+              datetime: NaN,
+              locale:   navigator.language,
+              format:   'dd.MM.yyyy HH:mm:ss',
+              minDate:  NaN,
+              maxDate:  NaN,
+              minTime:  NaN,
+              maxTime:  NaN
+          };
 
     function Plugin(element, options){
         this.$element          = element;
@@ -43,8 +43,8 @@
         this.spares            = [];
 
         this._handleMouseDown  = this._handleMouseDown.bind(this);
-        this._handleKeydown  = this._handleKeydown.bind(this);
-        this._handleMousewheel  = this._handleMousewheel.bind(this);
+        this._handleKeydown    = this._handleKeydown.bind(this);
+        this._handleMousewheel = this._handleMousewheel.bind(this);
 
         this._init();
         //clone value
@@ -59,8 +59,8 @@
             this.element.setSelectionRange(0, 0);
 
             // this.element.addEventListener('select', this.handleSelection.bind(this));
-            this.element.addEventListener('mouseup',    this._handleMouseDown);
-            this.element.addEventListener('keydown',    this._handleKeydown);
+            this.element.addEventListener('mouseup', this._handleMouseDown);
+            this.element.addEventListener('keydown', this._handleKeydown);
             this.element.addEventListener('mousewheel', this._handleMousewheel);
 
         },
@@ -81,7 +81,7 @@
             e.stopPropagation();
 
             this.currentSpareIndex = this._calculateCurrentSpare(e.target.selectionStart, this.spares);
-            const spare              = this.spares[this.currentSpareIndex];
+            const spare            = this.spares[this.currentSpareIndex];
 
             e.target.focus();
 
@@ -100,46 +100,61 @@
         },
 
         _handleKeydown: function(e){
-            e.preventDefault();
+
             const spare = this._ensureValueExist();
 
             switch(e.which) {
 
-            case KEY_LEFT:
-                this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function(x){
-                    return x.field !== 'Delimiter';
-                });
-                this._refresh();
-                break;
-            case KEY_RIGHT:
-                this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function(x){
-                    return x.field !== 'Delimiter';
-                });
-                this._refresh();
-                break;
+                case KEY_LEFT:
+                    e.preventDefault();
+                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function(x){
+                        return x.field !== 'Delimiter';
+                    });
+                    this._refresh();
+                    break;
 
-            case KEY_UP:
-                this._crement(1, spare);
-                break;
-            case KEY_DOWN:
-                this._crement(-1, spare);
-                break;
+                case KEY_RIGHT:
+                    e.preventDefault();
+                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function(x){
+                        return x.field !== 'Delimiter';
+                    });
+                    this._refresh();
+                    break;
 
-            case KEY_DELETE:
-                this.datetime = new Date(NaN);
-                this._refresh();
-                break;
+                case KEY_UP:
+                    e.preventDefault();
+                    this._crement(1, spare);
+                    break;
 
-            default:
+                case KEY_DOWN:
+                    e.preventDefault();
+                    this._crement(-1, spare);
+                    break;
+
+                case KEY_DELETE:
+                    e.preventDefault();
+                    this.datetime = new Date(NaN);
+                    this._refresh();
+                    break;
+
+                case KEY_A:
+                case KEY_C:
+                    if(!e.ctrlKey) {
+                        e.preventDefault();
+                    }
+                    break;
+
+                default:
+                    e.preventDefault();
                     // ignore non-numbers
-                if(!isFinite(e.key)) return;
+                    if(!isFinite(e.key)) return;
                     // ignore ampm
-                if(spare.field === 'AMPM') return;
+                    if(spare.field === 'AMPM') return;
                     // ignore Weekday
-                if(spare.field === 'Weekday') return;
+                    if(spare.field === 'Weekday') return;
 
-                this._modify(+e.key, spare);
-                break;
+                    this._modify(+e.key, spare);
+                    break;
 
             }
 
@@ -191,20 +206,20 @@
             const m  = date.getMonth();
 
             switch(fieldName) {
-            case 'FullYear':
-                return 9999;
-            case 'Month':
-                return 12;
-            case 'Date':
-                return (new Date(fy, m + 1, 0)).getDate(); // get number of days in the month
-            case 'Hours':
-                return 23;
-            case 'Minutes':
-                return 59;
-            case 'Seconds':
-                return 59;
-            default:
-                break;
+                case 'FullYear':
+                    return 9999;
+                case 'Month':
+                    return 12;
+                case 'Date':
+                    return (new Date(fy, m + 1, 0)).getDate(); // get number of days in the month
+                case 'Hours':
+                    return 23;
+                case 'Minutes':
+                    return 59;
+                case 'Seconds':
+                    return 59;
+                default:
+                    break;
 
             }
 
@@ -256,7 +271,7 @@
                 return proxyTime;
             } else {
 
-                let isFieldValid      = true;
+                let isFieldValid        = true;
                 const maxDateFieldValue = ( new Date(this.options.maxDate) )['getUTC' + spare.field]();
                 const minDateFieldValue = ( new Date(this.options.minDate) )['getUTC' + spare.field]();
                 const minTimeFieldValue = ( new Date(this.options.minTime) )['getUTC' + spare.field]();  //NaN, number
@@ -389,145 +404,145 @@
                      break;
                      */
 
-                case 'yy' :
-                    intlOption.year = '2-digit';
-                    _spare.strval   = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value    = FullYear;
-                    _spare.field    = 'FullYear';
-                    break;
+                    case 'yy' :
+                        intlOption.year = '2-digit';
+                        _spare.strval   = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value    = FullYear;
+                        _spare.field    = 'FullYear';
+                        break;
 
-                case 'yyyy' :
-                    intlOption    = {year: 'numeric', timeZone: 'UTC'};
-                    _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value  = FullYear;
-                    _spare.field  = 'FullYear';
-                    break;
+                    case 'yyyy' :
+                        intlOption    = {year: 'numeric', timeZone: 'UTC'};
+                        _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value  = FullYear;
+                        _spare.field  = 'FullYear';
+                        break;
 
-                case 'M' :
-                    intlOption.month = '2-digit';
-                    _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value     = Month;
-                    _spare.field     = 'Month';
-                    break;
+                    case 'M' :
+                        intlOption.month = '2-digit';
+                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value     = Month;
+                        _spare.field     = 'Month';
+                        break;
 
-                case 'MM' :
-                    intlOption.month = 'short';
-                    _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value     = Month;
-                    _spare.field     = 'Month';
-                    break;
+                    case 'MM' :
+                        intlOption.month = 'short';
+                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value     = Month;
+                        _spare.field     = 'Month';
+                        break;
 
-                case 'MMM' :
-                    intlOption.month = 'narrow';
-                    _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value     = Month;
-                    _spare.field     = 'Month';
-                    break;
+                    case 'MMM' :
+                        intlOption.month = 'narrow';
+                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value     = Month;
+                        _spare.field     = 'Month';
+                        break;
 
-                case 'MMMM' :
-                    intlOption.month = 'long';
-                    _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value     = Month;
-                    _spare.field     = 'Month';
-                    break;
+                    case 'MMMM' :
+                        intlOption.month = 'long';
+                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value     = Month;
+                        _spare.field     = 'Month';
+                        break;
 
-                case 'L' :
-                    intlOption.month = 'long';
-                    intlOption.day   = '2-digit';
+                    case 'L' :
+                        intlOption.month = 'long';
+                        intlOption.day   = '2-digit';
                         // here we need the correct form of the month name
-                    _spare.strval    = Intl.DateTimeFormat(locale, {
-                        day:   '2-digit',
-                        month: 'long'
-                    }).format(timestamp).substr(3);
-                    _spare.value     = Month;
-                    _spare.field     = 'Month';
-                    break;
+                        _spare.strval    = Intl.DateTimeFormat(locale, {
+                            day:   '2-digit',
+                            month: 'long'
+                        }).format(timestamp).substr(3);
+                        _spare.value     = Month;
+                        _spare.field     = 'Month';
+                        break;
 
-                case 'd' :
-                    intlOption.day = 'numeric';
-                    _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value   = Date;
-                    _spare.field   = 'Date';
-                    break;
+                    case 'd' :
+                        intlOption.day = 'numeric';
+                        _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value   = Date;
+                        _spare.field   = 'Date';
+                        break;
 
-                case 'dd' :
-                    intlOption.day = '2-digit';
-                    _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value   = Date;
-                    _spare.field   = 'Date';
-                    break;
+                    case 'dd' :
+                        intlOption.day = '2-digit';
+                        _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value   = Date;
+                        _spare.field   = 'Date';
+                        break;
 
-                case 'EE' :
-                    intlOption.weekday = 'short';
-                    _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value       = Date;
-                    _spare.field       = 'Weekday';
-                    break;
+                    case 'EE' :
+                        intlOption.weekday = 'short';
+                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value       = Date;
+                        _spare.field       = 'Weekday';
+                        break;
 
-                case 'EEE' :
-                    intlOption.weekday = 'narrow';
-                    _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value       = Date;
-                    _spare.field       = 'Weekday';
-                    break;
+                    case 'EEE' :
+                        intlOption.weekday = 'narrow';
+                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value       = Date;
+                        _spare.field       = 'Weekday';
+                        break;
 
-                case 'EEEE' :
-                    intlOption.weekday = 'long';
-                    _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                    _spare.value       = Date;
-                    _spare.field       = 'Weekday';
-                    break;
+                    case 'EEEE' :
+                        intlOption.weekday = 'long';
+                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                        _spare.value       = Date;
+                        _spare.field       = 'Weekday';
+                        break;
 
 
-                case 'h':
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours % 12);
-                    _spare.value  = Hours;
-                    _spare.field  = 'Hours';
-                    break;
+                    case 'h':
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours % 12);
+                        _spare.value  = Hours;
+                        _spare.field  = 'Hours';
+                        break;
 
-                case 'hh':
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours % 12);
-                    _spare.value  = Hours;
-                    _spare.field  = 'Hours';
-                    break;
+                    case 'hh':
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours % 12);
+                        _spare.value  = Hours;
+                        _spare.field  = 'Hours';
+                        break;
 
-                case 'H':
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours);
-                    _spare.value  = Hours;
-                    _spare.field  = 'Hours';
-                    break;
+                    case 'H':
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours);
+                        _spare.value  = Hours;
+                        _spare.field  = 'Hours';
+                        break;
 
-                case 'HH':
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours);
-                    _spare.value  = Hours;
-                    _spare.field  = 'Hours';
-                    break;
+                    case 'HH':
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours);
+                        _spare.value  = Hours;
+                        _spare.field  = 'Hours';
+                        break;
 
-                case 'm' :
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Minutes);
-                    _spare.value  = Minutes;
-                    _spare.field  = 'Minutes';
-                    break;
+                    case 'm' :
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Minutes);
+                        _spare.value  = Minutes;
+                        _spare.field  = 'Minutes';
+                        break;
 
-                case 'mm' :
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Minutes);
-                    _spare.value  = Minutes;
-                    _spare.field  = 'Minutes';
-                    break;
+                    case 'mm' :
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Minutes);
+                        _spare.value  = Minutes;
+                        _spare.field  = 'Minutes';
+                        break;
 
-                case 's' :
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Seconds);
-                    _spare.value  = Seconds;
-                    _spare.field  = 'Seconds';
-                    break;
+                    case 's' :
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Seconds);
+                        _spare.value  = Seconds;
+                        _spare.field  = 'Seconds';
+                        break;
 
-                case 'ss' :
-                    _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Seconds);
-                    _spare.value  = Seconds;
-                    _spare.field  = 'Seconds';
-                    break;
+                    case 'ss' :
+                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Seconds);
+                        _spare.value  = Seconds;
+                        _spare.field  = 'Seconds';
+                        break;
 
-                case 'a':
+                    case 'a':
 
                         // very special case
                         // We do not know AMPM translation for unknown language.
@@ -538,21 +553,21 @@
                         // Wzhuh!
 
 
-                    intlOption.hour   = 'numeric';
-                    intlOption.hour12 = true;
-                    _p                = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
+                        intlOption.hour   = 'numeric';
+                        intlOption.hour12 = true;
+                        _p                = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
 
-                    _spare.strval = _p.match(/[^\d\s]+/g)[0];
-                    _spare.value  = Hours;
-                    _spare.field  = 'AMPM';
+                        _spare.strval = _p.match(/[^\d\s]+/g)[0];
+                        _spare.value  = Hours;
+                        _spare.field  = 'AMPM';
 
-                    break;
+                        break;
 
                     // delimeter
-                default:
-                    _spare.strval = pattern[i];
-                    _spare.field  = 'Delimiter';
-                    break;
+                    default:
+                        _spare.strval = pattern[i];
+                        _spare.field  = 'Delimiter';
+                        break;
                 }
 
                 _spare.length = _spare.strval.length;
@@ -574,16 +589,16 @@
             let validTime = true,
                 validDate = true;
 
-            const isMaxDate = isFinite(this.options.maxDate);
-            const isMaxTime = isFinite(this.options.maxTime);
-            const isMinDate = isFinite(this.options.minDate);
-            const isMinTime = isFinite(this.options.minTime);
+            const isMaxDate    = isFinite(this.options.maxDate);
+            const isMaxTime    = isFinite(this.options.maxTime);
+            const isMinDate    = isFinite(this.options.minDate);
+            const isMinTime    = isFinite(this.options.minTime);
             const isNightRange = this.options.minTime > this.options.maxTime;
 
             if(isMinTime && isMaxTime) {
                 validTime = isNightRange
                     ? this.options.maxTime >= timePart || timePart >= this.options.minTime
-                    : this.options.maxTime >= timePart && timePart >= this.options.minTime ;
+                    : this.options.maxTime >= timePart && timePart >= this.options.minTime;
             }
 
             if(isMinDate && !isMinTime) {
@@ -612,26 +627,26 @@
 
             const timestamp = datetime.getTime();
 
-            let timePart  = (timestamp % DAYLEN + DAYLEN) % DAYLEN, //this is trick for negative timestamps
-                datePart  = timestamp - timePart;
+            let timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN, //this is trick for negative timestamps
+                datePart = timestamp - timePart;
 
 
             if(!isNaN(this.options.minTime) && !isNaN(this.options.maxTime)) {
 
                 if(this.options.maxTime > this.options.minTime) {
                     timePart = Math.max(this.options.minTime, Math.min(this.options.maxTime, timePart));
-                }  else {
+                } else {
                     let nearestLimit = Math.abs(timePart - this.options.maxTime) < Math.abs(timePart - this.options.minTime)
                         ? this.options.maxTime
                         : this.options.minTime;
-                    timePart = timePart > this.options.minTime || timePart < this.options.maxTime ? timePart : nearestLimit;
+                    timePart         = timePart > this.options.minTime || timePart < this.options.maxTime ? timePart : nearestLimit;
                 }
 
-                if(!isNaN(this.options.minDate)){
+                if(!isNaN(this.options.minDate)) {
                     datePart = Math.max(datePart, this.options.minDate);
                 }
 
-                if(!isNaN(this.options.maxDate)){
+                if(!isNaN(this.options.maxDate)) {
                     datePart = Math.min(datePart, this.options.maxDate);
                 }
 
@@ -641,9 +656,9 @@
                 timePart = 0;
 
                 let mD = isNaN(this.options.minDate) ? -Infinity : this.options.minDate;
-                let MD = isNaN(this.options.maxDate) ?  Infinity : this.options.maxDate;
+                let MD = isNaN(this.options.maxDate) ? Infinity : this.options.maxDate;
 
-                datePart = Math.max(mD, Math.min(MD, timestamp) );
+                datePart = Math.max(mD, Math.min(MD, timestamp));
 
                 if(isNaN(datePart)) {
                     datePart = timestamp;
@@ -668,7 +683,7 @@
 
             this.options = Object.assign({}, this.options, options);
 
-            this.datetime          = options.hasOwnProperty('datetime') ? new Date(options.datetime) : this.datetime;
+            this.datetime = options.hasOwnProperty('datetime') ? new Date(options.datetime) : this.datetime;
 
             let mD = new Date(this.options.minDate).getTime();
             let MD = new Date(this.options.maxDate).getTime();
@@ -676,17 +691,17 @@
             let MT = new Date(this.options.maxTime).getTime();
 
 
-            this.options.minTime = ( mT  % DAYLEN + DAYLEN ) % DAYLEN; // NaN, number [0...86400000 - 1]
-            this.options.maxTime = ( MT  % DAYLEN + DAYLEN ) % DAYLEN;
+            this.options.minTime = ( mT % DAYLEN + DAYLEN ) % DAYLEN; // NaN, number [0...86400000 - 1]
+            this.options.maxTime = ( MT % DAYLEN + DAYLEN ) % DAYLEN;
             this.options.minDate = isNaN(mT) ? mD : mD - mD % DAYLEN;  // NaN, number
             this.options.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
 
-            if(!isNaN(this.options.minTime)){
+            if(!isNaN(this.options.minTime)) {
                 this.options.maxTime = isNaN(this.options.maxTime) ? DAYLEN : this.options.maxTime;
             }
 
-            if(!isNaN(this.options.maxTime)){
-                this.options.minTime = isNaN(this.options.minTime) ? 0: this.options.minTime;
+            if(!isNaN(this.options.maxTime)) {
+                this.options.minTime = isNaN(this.options.minTime) ? 0 : this.options.minTime;
             }
 
 
