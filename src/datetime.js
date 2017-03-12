@@ -80,7 +80,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            this.currentSpareIndex = this._calculateCurrentSpare(e.target.selectionStart, this.spares);
+            this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
             const spare            = this.spares[this.currentSpareIndex];
 
             e.target.focus();
@@ -173,30 +173,41 @@
 
         },
 
-        _calculateCurrentSpare: function(caretPosition, spares){
+        _calculateSpareIndexAtCaretPosition: function(caretPosition, spares){
 
             let l = 0,
-                s = 0;
+                s = 0,
+                index = 0;
 
-            for(s; s < spares.length - 1; s++) {
+            for(s; s <= spares.length - 1; s++) {
+
+                if(spares[s].field !== 'Delimiter') {
+                    index = s;
+                }
+
+                if(l >= caretPosition){
+                    break;
+                }
 
                 l += spares[s].length;
-                if(l >= caretPosition && spares[s].field !== 'Delimiter') {
+            }
+
+            return index;
+        },
+
+        _calculateNextSpareIndex: function(spares, currentIndex, direction, testFn){
+
+            direction = Math.sign(direction); //make sure the direction is +1 or -1
+            let newIndex = currentIndex;
+
+            for(let y = currentIndex + direction ; y >= 0 && y < spares.length ; y += direction ){
+                if( testFn(spares[y]) ) {
+                    newIndex = y;
                     break;
                 }
             }
-            return s;
-        },
 
-        _calculateNextSpareIndex: function(arr, currentIndex, direction, testFn){
-
-            let y = currentIndex;
-
-            do {
-                direction > 0 ? y++ : y--;
-            } while(arr[y] && !testFn(arr[y]));
-
-            return Math.min(Math.max(0, y), arr.length - 1);
+            return newIndex;
 
         },
 

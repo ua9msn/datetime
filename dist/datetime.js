@@ -96,7 +96,7 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                this.currentSpareIndex = this._calculateCurrentSpare(e.target.selectionStart, this.spares);
+                this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
                 var spare = this.spares[this.currentSpareIndex];
 
                 e.target.focus();
@@ -187,30 +187,41 @@
                 this._refresh();
             },
 
-            _calculateCurrentSpare: function _calculateCurrentSpare(caretPosition, spares) {
+            _calculateSpareIndexAtCaretPosition: function _calculateSpareIndexAtCaretPosition(caretPosition, spares) {
 
                 var l = 0,
-                    s = 0;
+                    s = 0,
+                    index = 0;
 
-                for (s; s < spares.length - 1; s++) {
+                for (s; s <= spares.length - 1; s++) {
+
+                    if (spares[s].field !== 'Delimiter') {
+                        index = s;
+                    }
+
+                    if (l >= caretPosition) {
+                        break;
+                    }
 
                     l += spares[s].length;
-                    if (l >= caretPosition && spares[s].field !== 'Delimiter') {
+                }
+
+                return index;
+            },
+
+            _calculateNextSpareIndex: function _calculateNextSpareIndex(spares, currentIndex, direction, testFn) {
+
+                direction = Math.sign(direction); //make sure the direction is +1 or -1
+                var newIndex = currentIndex;
+
+                for (var y = currentIndex + direction; y >= 0 && y < spares.length; y += direction) {
+                    if (testFn(spares[y])) {
+                        newIndex = y;
                         break;
                     }
                 }
-                return s;
-            },
 
-            _calculateNextSpareIndex: function _calculateNextSpareIndex(arr, currentIndex, direction, testFn) {
-
-                var y = currentIndex;
-
-                do {
-                    direction > 0 ? y++ : y--;
-                } while (arr[y] && !testFn(arr[y]));
-
-                return Math.min(Math.max(0, y), arr.length - 1);
+                return newIndex;
             },
 
             _getMaxFieldValueAtDate: function _getMaxFieldValueAtDate(date, fieldName) {
