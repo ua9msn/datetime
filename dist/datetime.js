@@ -161,7 +161,7 @@
                         break;
 
                     default:
-                        e.preventDefault();
+                        //e.preventDefault();
                         // ignore non-numbers
                         if (!isFinite(e.key)) return;
                         // ignore ampm
