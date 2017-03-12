@@ -215,6 +215,7 @@
 
                 direction = Math.sign(direction); //make sure the direction is +1 or -1
                 var newIndex = currentIndex;
+                newIndex = newIndex / 1;
 
                 for (var y = currentIndex + direction; y >= 0 && y < spares.length; y += direction) {
                     if (testFn(spares[y])) {

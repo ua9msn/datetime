@@ -200,7 +200,8 @@
         _calculateNextSpareIndex: function(spares, currentIndex, direction, testFn){
 
             direction = Math.sign(direction); //make sure the direction is +1 or -1
-            let newIndex = currentIndex;
+            let newIndex = currentIndex ;
+            newIndex = newIndex / 1;
 
             for(let y = currentIndex + direction ; y >= 0 && y < spares.length ; y += direction ){
                 if( testFn(spares[y]) ) {
