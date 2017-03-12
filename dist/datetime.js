@@ -96,6 +96,8 @@
                 e.preventDefault();
                 e.stopPropagation();
 
+                this._ensureValueExist();
+
                 this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
                 var spare = this.spares[this.currentSpareIndex];
 
@@ -111,13 +113,13 @@
                     this.datetime = new Date();
                     this._refresh();
                 }
-
-                return this.spares[this.currentSpareIndex];
             },
 
             _handleKeydown: function _handleKeydown(e) {
 
-                var spare = this._ensureValueExist();
+                this._ensureValueExist();
+
+                var spare = this.spares[this.currentSpareIndex];
 
                 switch (e.which) {
 
@@ -179,9 +181,10 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                var direction = Math.sign(e.wheelDelta);
+                this._ensureValueExist();
 
-                var spare = this._ensureValueExist();
+                var spare = this.spares[this.currentSpareIndex];
+                var direction = Math.sign(e.wheelDelta);
 
                 this._crement(direction, spare);
                 this._refresh();
@@ -189,21 +192,20 @@
 
             _calculateSpareIndexAtCaretPosition: function _calculateSpareIndexAtCaretPosition(caretPosition, spares) {
 
-                var l = 0,
-                    s = 0,
-                    index = 0;
+                var index = 0,
+                    s = spares.findIndex(function (spare) {
+                    return spare.field !== 'Delimiter';
+                });
 
-                for (s; s <= spares.length - 1; s++) {
+                for (s; s < spares.length; s++) {
 
                     if (spares[s].field !== 'Delimiter') {
                         index = s;
                     }
 
-                    if (l >= caretPosition) {
+                    if (spares[s].offset >= caretPosition) {
                         break;
                     }
-
-                    l += spares[s].length;
                 }
 
                 return index;

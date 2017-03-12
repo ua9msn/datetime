@@ -80,6 +80,8 @@
             e.preventDefault();
             e.stopPropagation();
 
+            this._ensureValueExist();
+
             this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
             const spare            = this.spares[this.currentSpareIndex];
 
@@ -96,12 +98,13 @@
                 this._refresh();
             }
 
-            return this.spares[this.currentSpareIndex];
         },
 
         _handleKeydown: function(e){
 
-            const spare = this._ensureValueExist();
+            this._ensureValueExist();
+
+            const spare = this.spares[this.currentSpareIndex];
 
             switch(e.which) {
 
@@ -164,9 +167,10 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const direction = Math.sign(e.wheelDelta);
+            this._ensureValueExist();
 
-            const spare = this._ensureValueExist();
+            const spare = this.spares[this.currentSpareIndex];
+            const direction = Math.sign(e.wheelDelta);
 
             this._crement(direction, spare);
             this._refresh();
@@ -175,21 +179,19 @@
 
         _calculateSpareIndexAtCaretPosition: function(caretPosition, spares){
 
-            let l = 0,
-                s = 0,
-                index = 0;
+            let index = 0,
+                s = spares.findIndex( spare => spare.field !== 'Delimiter' );
 
-            for(s; s <= spares.length - 1; s++) {
+            for(s; s < spares.length ; s++) {
 
                 if(spares[s].field !== 'Delimiter') {
                     index = s;
                 }
 
-                if(l >= caretPosition){
+                if(spares[s].offset >= caretPosition){
                     break;
                 }
 
-                l += spares[s].length;
             }
 
             return index;
