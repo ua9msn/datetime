@@ -1,39 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    
-    <script src="https://code.jquery.com/jquery-3.1.1.js"></script>
-    
-    <script src="../dist/datetime.js"></script>
-    
-    <script>
+	<meta charset="UTF-8">
+	<title>Title</title>
+	<script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+	<script src="../dist/datetime.js"></script>
+	<script>
+		$(function(){
+			$('#basic').datetime({
+				format: 'dd M yyyy HH:mm',
+			}).on('change', function(e, arg){
+				console.log(arg);
+			});
 
-        $(function(){
-            $('#basic').datetime({
-                locale: 'ru',
-                format:  'sdfsg dd L yyyy HH:mm   fgfgf ',
-               // datetime: Date.now(),
-                minTime: new Date('Jan 01 2017 08:00:00 UTC'),
-                maxTime: new Date('Jan 01 2017 23:00:00 UTC'),
-            })
-                .on('change', function(e, arg){
-                    console.log(arg);
-                });
-
-
-        })
-    
-    </script>
-
-
+			$('#advanced').datetime({
+				format: 'test-start EEEE dd M yyyy HH:mm:ss test-end',
+				tabControls: true
+			});
+		})
+	</script>
 </head>
 <body>
-    
-    <div class="basic">
-        <input type="text" id="basic" style="width: 250px; margin: 50px 0;">
-    </div>
-
+	<input type="text" id="basic" style="width: 250px; margin: 50px 0;">
+	<input type="text" style="width: 250px; margin: 50px 0;" value="Ordinary Input">
+	<input type="text" id="advanced" style="width: 250px; margin: 50px 0;">
+	<input type="text" style="width: 250px; margin: 50px 0;" value="Ordinary Input">
 </body>
 </html>

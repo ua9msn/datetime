@@ -33,7 +33,8 @@
               minDate:  NaN,
               maxDate:  NaN,
               minTime:  NaN,
-              maxTime:  NaN
+              maxTime:  NaN,
+              tabControls: false
           };
 
     function Plugin(element, options){
@@ -105,23 +106,26 @@
             this._ensureValueExist();
 
             const spare = this.spares[this.currentSpareIndex];
+            const left  = -1;
+            const right = 1;
+
+            const move = (direction) => {
+                this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, direction, function(x){
+                    return x.field !== 'Delimiter';
+                });
+                this._refresh();
+            };
 
             switch(e.which) {
 
                 case KEY_LEFT:
                     e.preventDefault();
-                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function(x){
-                        return x.field !== 'Delimiter';
-                    });
-                    this._refresh();
+                    move(left);
                     break;
 
                 case KEY_RIGHT:
                     e.preventDefault();
-                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function(x){
-                        return x.field !== 'Delimiter';
-                    });
-                    this._refresh();
+                    move(right);
                     break;
 
                 case KEY_UP:
@@ -140,6 +144,27 @@
                     this._refresh();
                     break;
 
+                case KEY_TAB:
+                    if (this.options.tabControls) {
+                        const previousSpareIndex = this.currentSpareIndex; 
+
+                        if (e.shiftKey)
+                        {
+                            move(left);
+                        }
+                        else
+                        {
+                            move(right);
+                        }
+
+                        // Prevent default tab behaviour if there was still room to move inside the control
+                        if (previousSpareIndex !== this.currentSpareIndex)
+                        {
+                             e.preventDefault();
+                        }
+                    }
+                    break;
+
                 case KEY_A:
                 case KEY_C:
                     if(!e.ctrlKey) {
@@ -148,7 +173,6 @@
                     break;
 
                 default:
-                    //e.preventDefault();
                     // ignore non-numbers
                     if(!isFinite(e.key)) return;
                     // ignore ampm
