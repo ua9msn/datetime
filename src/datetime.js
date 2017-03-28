@@ -148,7 +148,8 @@
                     break;
 
                 default:
-
+                    // https://github.com/ua9msn/datetime/issues/2
+                    e.preventDefault();
                     // ignore non-numbers
                     if(!isFinite(e.key)) return;
                     // ignore ampm
@@ -157,9 +158,6 @@
                     if(spare.field === 'Weekday') return;
 
                     this._modify(+e.key, spare);
-
-                    // https://github.com/ua9msn/datetime/issues/2
-                    e.preventDefault();
 
                     break;
 
