@@ -20,7 +20,9 @@
           KEY_V         = 86,
           KEY_D         = 68,
           KEY_F2        = 113,
-          KEY_INSERT    = 45;
+          KEY_INSERT    = 45,
+          KEY_ADD       = 107,
+          KEY_MINUS     = 109;
     /* eslint-enable no-unused-vars */
 
     const DAYLEN = 86400000;
@@ -56,14 +58,11 @@
     Plugin.prototype = {
 
         _init: function(){
-
             this.element.setSelectionRange(0, 0);
 
-            // this.element.addEventListener('select', this.handleSelection.bind(this));
             this.element.addEventListener('mouseup', this._handleMouseDown);
             this.element.addEventListener('keydown', this._handleKeydown);
             this.element.addEventListener('mousewheel', this._handleMousewheel);
-
         },
 
         _refresh: function(){
@@ -129,11 +128,13 @@
                     break;
 
                 case KEY_UP:
+                case KEY_ADD:
                     e.preventDefault();
                     this._crement(1, spare);
                     break;
 
                 case KEY_DOWN:
+                case KEY_MINUS:
                     e.preventDefault();
                     this._crement(-1, spare);
                     break;

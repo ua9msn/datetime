@@ -1,14 +1,14 @@
 {
   "name": "datetime-entry",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "",
   "main": "datetime.min.js",
   "scripts": {
     "test": "karma start --singleRun --browsers Firefox",
-    "build:prod": "BABEL_ENV=production babel src -o dist/datetime.min.js",
-    "build:stg": "BABEL_ENV=production babel src -o dist/datetime.stg.js --source-maps",
+    "build:prod": "SET BABEL_ENV=production && babel src -o dist/datetime.min.js",
+    "build:stg": "SET BABEL_ENV=production && babel src -o dist/datetime.stg.js --source-maps",
     "build:dev": "babel src -o dist/datetime.js",
-    "build:gh": "BABEL_ENV=production babel src -o docs/datetime.min.js",
+    "build:gh": "SET BABEL_ENV=production && babel src -o docs/datetime.min.js",
     "build": "npm run build:dev && npm run build:prod && npm run build:stg && npm run build:gh"
   },
   "author": "Serge Balykov (ua9msn@gmail.com)",
