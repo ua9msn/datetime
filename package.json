@@ -1,6 +1,6 @@
 {
   "name": "datetime-entry",
-  "version": "1.1.5",
+  "version": "1.1.8",
   "description": "",
   "main": "datetime.min.js",
   "scripts": {
@@ -40,6 +40,6 @@
     "karma-jasmine-jquery": "^0.1.1"
   },
   "peerDependencies": {
-    "jquery": "^3.1.1"
+    "jquery": "*"
   }
 }

@@ -1,1 +1,760 @@
-(function(a,b){if('function'==typeof define&&define.amd)define([],b);else if('undefined'!=typeof exports)b();else{b(),a.datetime={exports:{}}.exports}})(this,function(){'use strict';(function(a,b,d,f){function g(G,H){this.$element=G,this.element=G[0],this.currentSpareIndex=0,this.spares=[],this._handleMouseDown=this._handleMouseDown.bind(this),this._handleKeydown=this._handleKeydown.bind(this),this._handleMousewheel=this._handleMousewheel.bind(this),this._init(),this.setOptions(Object.assign({},F,H))}var D=8.64e7,E='datetime',F={datetime:NaN,locale:navigator.language,format:'dd.MM.yyyy HH:mm:ss',minDate:NaN,maxDate:NaN,minTime:NaN,maxTime:NaN,tabControls:!1};g.prototype={_init:function(){this.element.setSelectionRange(0,0),this.element.addEventListener('mouseup',this._handleMouseDown),this.element.addEventListener('keydown',this._handleKeydown),this.element.addEventListener('mousewheel',this._handleMousewheel)},_refresh:function(){this.spares=this._disassembleTimestamp(this.datetime,this.options.locale,this.options.format),this.element.value=this.spares.map(function(I){return I.strval}).join('');var H=this.spares[this.currentSpareIndex];H&&this.element.setSelectionRange(H.offset,H.offset+H.length)},_handleMouseDown:function(H){H.preventDefault(),H.stopPropagation(),this._ensureValueExist(),this.currentSpareIndex=this._calculateSpareIndexAtCaretPosition(H.target.selectionStart,this.spares);var I=this.spares[this.currentSpareIndex];H.target.focus();I&&H.target.setSelectionRange(I.offset,I.offset+I.length)},_ensureValueExist:function(){this.spares.length||(this.datetime=new Date,this._refresh())},_handleKeydown:function(H){var I=this;this._ensureValueExist();var J=this.spares[this.currentSpareIndex],K=-1,L=1,M=function move(N){I.currentSpareIndex=I._calculateNextSpareIndex(I.spares,I.currentSpareIndex,N,function(O){return'Delimiter'!==O.field}),I._refresh()};switch(H.which){case 37:H.preventDefault(),M(K);break;case 39:H.preventDefault(),M(L);break;case 38:H.preventDefault(),this._crement(1,J);break;case 40:H.preventDefault(),this._crement(-1,J);break;case 46:H.preventDefault(),this.datetime=new Date(NaN),this._refresh();break;case 9:if(this.options.tabControls){var N=this.currentSpareIndex;H.shiftKey?M(K):M(L),N!==this.currentSpareIndex&&H.preventDefault()}break;case 65:case 67:H.ctrlKey||H.preventDefault();break;default:if(!isFinite(H.key))return;if('AMPM'===J.field)return;if('Weekday'===J.field)return;this._modify(+H.key,J);}},_handleMousewheel:function(H){H.preventDefault(),H.stopPropagation(),this._ensureValueExist();var I=this.spares[this.currentSpareIndex],J=Math.sign(H.wheelDelta);this._crement(J,I),this._refresh()},_calculateSpareIndexAtCaretPosition:function(H,I){var J=0,K=I.findIndex(function(L){return'Delimiter'!==L.field});for(K;K<I.length&&('Delimiter'!==I[K].field&&(J=K),!(I[K].offset>=H));K++);return J},_calculateNextSpareIndex:function(H,I,J,K){J=Math.sign(J);var L=I;L/=1;for(var M=I+J;0<=M&&M<H.length;M+=J)if(K(H[M])){L=M;break}return L},_getMaxFieldValueAtDate:function(H,I){var J=H.getFullYear(),K=H.getMonth();switch(I){case'FullYear':return 9999;case'Month':return 12;case'Date':return new Date(J,K+1,0).getDate();case'Hours':return 23;case'Minutes':return 59;case'Seconds':return 59;default:}},_calculateNextValue:function(H,I,J){var K=I.buffer||I.value;'Month'===I.field&&++K;var L=10*K+H,N=[L%1e4,L%1e3,L%100,L%10].reduce(function(R,S){return S<=J?Math.max(R,S):R},0);'Month'===I.field&&(N=N?N-1:K-1),'Date'===I.field&&0===N&&(N=K);var O='setUTC'+I.field,P=new Date(this.datetime);P[O](N);var Q=this._validate(P);if(Q)return P;var R=!0,S=new Date(this.options.maxDate)['getUTC'+I.field](),T=new Date(this.options.minDate)['getUTC'+I.field](),U=new Date(this.options.minTime)['getUTC'+I.field](),V=new Date(this.options.maxTime)['getUTC'+I.field](),W=P['getUTC'+I.field]();return(('FullYear'===I.field||'Month'===I.field||'Date'===I.field)&&(R=!(S<W)&&!(W<T)),('Hours'===I.field||'Minutes'===I.field||'Seconds'===I.field)&&(V>U?R=!((S||V)<W)&&!(W<(U||T)):R=!((S||V)>W)&&!(W>(U||T))),R)?(P=this._fitToLmits(P),P):(I.buffer=10*(I.buffer||0)+H,this.datetime)},_crement:function(H,I){if('Delimiter'!==I.field){var J,K=I.value;'AMPM'===I.field?(J='setUTCHours',K+=12*H):'Weekday'===I.field?(J='setUTCDate',K+=H):(J='setUTC'+I.field,K+=H);var L=new Date(this.datetime);L[J](K);var M=this._fitToLmits(L);M.getTime()!==this.datetime.getTime()&&(this.datetime=M,this._refresh(),this.$element.trigger('change',this.datetime))}},_modify:function(H,I){var J=this._getMaxFieldValueAtDate(this.datetime,I.field),K=this._calculateNextValue(H,I,J);K!==this.datetime&&(this.datetime=K,this._refresh(),this.$element.trigger('change',this.datetime))},_disassembleTimestamp:function(H,I,J){var K=[],L=0;if('Invalid Date'==H)return K;if(H==f)return K;for(var M=J.trim().match(/\w+|\S|\s/g),N=H.getUTCDate(),O=H.getUTCFullYear(),P=H.getUTCHours(),Q=H.getUTCMinutes(),R=H.getUTCMonth(),S=H.getUTCSeconds(),T=H.getTime(),U=0;U<M.length;U++){var V={timeZone:'UTC'},W={},Y=void 0;switch(M[U]){case'yy':V.year='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=O,W.field='FullYear';break;case'yyyy':V={year:'numeric',timeZone:'UTC'},W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=O,W.field='FullYear';break;case'M':V.month='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MM':V.month='short',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MMM':V.month='narrow',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MMMM':V.month='long',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'L':V.month='long',V.day='2-digit',W.strval=Intl.DateTimeFormat(I,{day:'2-digit',month:'long'}).format(T).substr(3),W.value=R,W.field='Month';break;case'd':V.day='numeric',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Date';break;case'dd':V.day='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Date';break;case'EE':V.weekday='short',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'EEE':V.weekday='narrow',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'EEEE':V.weekday='long',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'h':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(P%12),W.value=P,W.field='Hours';break;case'hh':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(P%12),W.value=P,W.field='Hours';break;case'H':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(P),W.value=P,W.field='Hours';break;case'HH':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(P),W.value=P,W.field='Hours';break;case'm':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(Q),W.value=Q,W.field='Minutes';break;case'mm':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(Q),W.value=Q,W.field='Minutes';break;case's':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(S),W.value=S,W.field='Seconds';break;case'ss':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(S),W.value=S,W.field='Seconds';break;case'a':V.hour='numeric',V.hour12=!0,Y=Intl.DateTimeFormat(I+'-u-nu-latn',V).format(T),W.strval=Y.match(/[^\d\s]+/g)[0],W.value=P,W.field='AMPM';break;default:W.strval=M[U],W.field='Delimiter';}W.length=W.strval.length,W.offset=L,L+=W.length,K.push(W)}return K},_validate:function(H){var I=H.getTime(),J=(I%D+D)%D,K=I-J,L=!0,M=!0,N=isFinite(this.options.maxDate),O=isFinite(this.options.maxTime),P=isFinite(this.options.minDate),Q=isFinite(this.options.minTime),R=this.options.minTime>this.options.maxTime;return Q&&O&&(L=R?this.options.maxTime>=J||J>=this.options.minTime:this.options.maxTime>=J&&J>=this.options.minTime),P&&!Q&&(M=M&&I>=this.options.minDate),N&&!O&&(M=M&&I<=this.options.maxDate),P&&Q&&(M=M&&K>=this.options.minDate),N&&O&&(M=M&&K<=this.options.maxDate),M&&L},_fitToLmits:function(H){if(isNaN(H))return H;var I=H.getTime(),J=(I%D+D)%D,K=I-J;if(!isNaN(this.options.minTime)&&!isNaN(this.options.maxTime)){if(this.options.maxTime>this.options.minTime)J=Math.max(this.options.minTime,Math.min(this.options.maxTime,J));else{var L=Math.abs(J-this.options.maxTime)<Math.abs(J-this.options.minTime)?this.options.maxTime:this.options.minTime;J=J>this.options.minTime||J<this.options.maxTime?J:L}isNaN(this.options.minDate)||(K=Math.max(K,this.options.minDate)),isNaN(this.options.maxDate)||(K=Math.min(K,this.options.maxDate))}else{J=0;var L=isNaN(this.options.minDate)?-Infinity:this.options.minDate,M=isNaN(this.options.maxDate)?Infinity:this.options.maxDate;K=Math.max(L,Math.min(M,I)),isNaN(K)&&(K=I)}return new Date(K+J)},getTime:function(){return this.datetime},setTime:function(H){this.datetime=new Date(H),this._refresh()},setOptions:function(H){this.options=Object.assign({},this.options,H),this.datetime=H.hasOwnProperty('datetime')?new Date(H.datetime):this.datetime;var I=new Date(this.options.minDate).getTime(),J=new Date(this.options.maxDate).getTime(),K=new Date(this.options.minTime).getTime(),L=new Date(this.options.maxTime).getTime();this.options.minTime=(K%D+D)%D,this.options.maxTime=(L%D+D)%D,this.options.minDate=isNaN(K)?I:I-I%D,this.options.maxDate=isNaN(L)?J:J-J%D,isNaN(this.options.minTime)||(this.options.maxTime=isNaN(this.options.maxTime)?D:this.options.maxTime),isNaN(this.options.maxTime)||(this.options.minTime=isNaN(this.options.minTime)?0:this.options.minTime),this._refresh()},destroy:function(){this.element.removeEventListener('mouseup',this._handleMouseDown),this.element.removeEventListener('keydown',this._handleKeydown),this.element.removeEventListener('mousewheel',this._handleMousewheel),a(this.element).removeData(E)}},a.fn[E]=function(G,H){if(!this.data(E))return'string'==typeof G?void console.warn('datetime plugin expect options object as first argument'):(this.data(E,new g(this,G)),this);var I=this.data(E);return'function'==typeof I[G]?I[G](H):void console.warn('method ',G,' not exist')}})(jQuery,window,document)});
+(function (global, factory) {
+    if (typeof define === "function" && define.amd) {
+        define([], factory);
+    } else if (typeof exports !== "undefined") {
+        factory();
+    } else {
+        var mod = {
+            exports: {}
+        };
+        factory();
+        global.datetime = mod.exports;
+    }
+})(this, function () {
+    'use strict';
+
+    /**
+     * Created by Serge Balykov (ua9msn@mail.ru) on 2/1/17.
+     */
+
+    (function ($, window, document, undefined) {
+
+        /* eslint-disable no-unused-vars */
+        var KEY_TAB = 9,
+            KEY_ENTER = 13,
+            KEY_BACKSPACE = 8,
+            KEY_DELETE = 46,
+            KEY_ESCAPE = 27,
+            KEY_SPACE = 32,
+            KEY_DOWN = 40,
+            KEY_UP = 38,
+            KEY_LEFT = 37,
+            KEY_RIGHT = 39,
+            KEY_A = 65,
+            KEY_C = 67,
+            KEY_V = 86,
+            KEY_D = 68,
+            KEY_F2 = 113,
+            KEY_INSERT = 45;
+        /* eslint-enable no-unused-vars */
+
+        var DAYLEN = 86400000;
+
+        var pluginName = 'datetime',
+            defaults = {
+            datetime: NaN,
+            locale: navigator.language,
+            format: 'dd.MM.yyyy HH:mm:ss',
+            minDate: NaN,
+            maxDate: NaN,
+            minTime: NaN,
+            maxTime: NaN
+        };
+
+        function Plugin(element, options) {
+            this.$element = element;
+            this.element = element[0];
+            this.currentSpareIndex = 0;
+            this.spares = [];
+
+            this._handleMouseDown = this._handleMouseDown.bind(this);
+            this._handleKeydown = this._handleKeydown.bind(this);
+            this._handleMousewheel = this._handleMousewheel.bind(this);
+
+            this._init();
+            //clone value
+
+            this.setOptions(Object.assign({}, defaults, options));
+        }
+
+        Plugin.prototype = {
+
+            _init: function _init() {
+
+                this.element.setSelectionRange(0, 0);
+
+                // this.element.addEventListener('select', this.handleSelection.bind(this));
+                this.element.addEventListener('mouseup', this._handleMouseDown);
+                this.element.addEventListener('keydown', this._handleKeydown);
+                this.element.addEventListener('mousewheel', this._handleMousewheel);
+            },
+
+            _refresh: function _refresh() {
+                this.spares = this._disassembleTimestamp(this.datetime, this.options.locale, this.options.format);
+                this.element.value = this.spares.map(function (s) {
+                    return s.strval;
+                }).join('');
+
+                var spare = this.spares[this.currentSpareIndex];
+                if (spare) {
+                    this.element.setSelectionRange(spare.offset, spare.offset + spare.length);
+                }
+            },
+
+            _handleMouseDown: function _handleMouseDown(e) {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                this._ensureValueExist();
+
+                this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
+                var spare = this.spares[this.currentSpareIndex];
+
+                e.target.focus();
+
+                if (!spare) return;
+
+                e.target.setSelectionRange(spare.offset, spare.offset + spare.length);
+            },
+
+            _ensureValueExist: function _ensureValueExist() {
+                if (!this.spares.length) {
+                    this.datetime = new Date();
+                    this._refresh();
+                }
+            },
+
+            _handleKeydown: function _handleKeydown(e) {
+
+                this._ensureValueExist();
+
+                var spare = this.spares[this.currentSpareIndex];
+
+                switch (e.which) {
+
+                    case KEY_LEFT:
+                        e.preventDefault();
+                        this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function (x) {
+                            return x.field !== 'Delimiter';
+                        });
+                        this._refresh();
+                        break;
+
+                    case KEY_RIGHT:
+                        e.preventDefault();
+                        this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function (x) {
+                            return x.field !== 'Delimiter';
+                        });
+                        this._refresh();
+                        break;
+
+                    case KEY_UP:
+                        e.preventDefault();
+                        this._crement(1, spare);
+                        break;
+
+                    case KEY_DOWN:
+                        e.preventDefault();
+                        this._crement(-1, spare);
+                        break;
+
+                    case KEY_DELETE:
+                        e.preventDefault();
+                        this.datetime = new Date(NaN);
+                        this._refresh();
+                        break;
+
+                    case KEY_A:
+                    case KEY_C:
+                        if (!e.ctrlKey) {
+                            e.preventDefault();
+                        }
+                        break;
+
+                    default:
+                        // https://github.com/ua9msn/datetime/issues/2
+                        e.preventDefault();
+                        // ignore non-numbers
+                        if (!isFinite(e.key)) return;
+                        // ignore ampm
+                        if (spare.field === 'AMPM') return;
+                        // ignore Weekday
+                        if (spare.field === 'Weekday') return;
+
+                        this._modify(+e.key, spare);
+
+                        break;
+
+                }
+            },
+
+            _handleMousewheel: function _handleMousewheel(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                this._ensureValueExist();
+
+                var spare = this.spares[this.currentSpareIndex];
+                var direction = Math.sign(e.wheelDelta);
+
+                this._crement(direction, spare);
+                this._refresh();
+            },
+
+            _calculateSpareIndexAtCaretPosition: function _calculateSpareIndexAtCaretPosition(caretPosition, spares) {
+
+                var index = 0,
+                    s = spares.findIndex(function (spare) {
+                    return spare.field !== 'Delimiter';
+                });
+
+                for (s; s < spares.length; s++) {
+
+                    if (spares[s].field !== 'Delimiter') {
+                        index = s;
+                    }
+
+                    if (spares[s].offset >= caretPosition) {
+                        break;
+                    }
+                }
+
+                return index;
+            },
+
+            _calculateNextSpareIndex: function _calculateNextSpareIndex(spares, currentIndex, direction, testFn) {
+
+                direction = Math.sign(direction); //make sure the direction is +1 or -1
+                var newIndex = currentIndex;
+                newIndex = newIndex / 1;
+
+                for (var y = currentIndex + direction; y >= 0 && y < spares.length; y += direction) {
+                    if (testFn(spares[y])) {
+                        newIndex = y;
+                        break;
+                    }
+                }
+
+                return newIndex;
+            },
+
+            _getMaxFieldValueAtDate: function _getMaxFieldValueAtDate(date, fieldName) {
+
+                var fy = date.getFullYear();
+                var m = date.getMonth();
+
+                switch (fieldName) {
+                    case 'FullYear':
+                        return 9999;
+                    case 'Month':
+                        return 12;
+                    case 'Date':
+                        return new Date(fy, m + 1, 0).getDate(); // get number of days in the month
+                    case 'Hours':
+                        return 23;
+                    case 'Minutes':
+                        return 59;
+                    case 'Seconds':
+                        return 59;
+                    default:
+                        break;
+
+                }
+            },
+
+            _calculateNextValue: function _calculateNextValue(input, spare, max) {
+
+                var prev = spare.buffer || spare.value;
+
+                // in spare month has value as for Date (Jan = 0)
+                // but user input supposed to be 1 for Jan
+                if (spare.field === 'Month') {
+                    prev = prev + 1;
+                }
+
+                //append number to the end
+                var x = prev * 10 + input;
+
+                // split to summ of digits
+                var arr = [x % 10000, x % 1000, x % 100, x % 10];
+
+                // calculate closest less value
+                var mm = arr.reduce(function (p, c) {
+                    return c <= max ? Math.max(p, c) : p;
+                }, 0);
+
+                // rollback month value
+                // but prevent pass 0
+                if (spare.field === 'Month') {
+                    mm = mm ? mm - 1 : prev - 1;
+                }
+
+                // Date can not be null.
+                // We allow to enter 0 if it makes valid date (10, 20, 30)
+                if (spare.field === 'Date' && mm === 0) {
+                    mm = prev;
+                }
+
+                var fnName = 'setUTC' + spare.field;
+
+                var proxyTime = new Date(this.datetime);
+
+                proxyTime[fnName](mm);
+
+                var isValid = this._validate(proxyTime);
+
+                if (isValid) {
+                    return proxyTime;
+                } else {
+
+                    var isFieldValid = true;
+                    var maxDateFieldValue = new Date(this.options.maxDate)['getUTC' + spare.field]();
+                    var minDateFieldValue = new Date(this.options.minDate)['getUTC' + spare.field]();
+                    var minTimeFieldValue = new Date(this.options.minTime)['getUTC' + spare.field](); //NaN, number
+                    var maxTimeFieldValue = new Date(this.options.maxTime)['getUTC' + spare.field]();
+                    var thisValue = proxyTime['getUTC' + spare.field]();
+
+                    if (spare.field === 'FullYear' || spare.field === 'Month' || spare.field === 'Date') {
+                        isFieldValid = !(maxDateFieldValue < thisValue) && !(thisValue < minDateFieldValue);
+                    }
+
+                    if (spare.field === 'Hours' || spare.field === 'Minutes' || spare.field === 'Seconds') {
+
+                        if (maxTimeFieldValue > minTimeFieldValue) {
+                            isFieldValid = !((maxDateFieldValue || maxTimeFieldValue) < thisValue) && !(thisValue < (minTimeFieldValue || minDateFieldValue));
+                        } else {
+                            isFieldValid = !((maxDateFieldValue || maxTimeFieldValue) > thisValue) && !(thisValue > (minTimeFieldValue || minDateFieldValue));
+                        }
+                    }
+
+                    if (isFieldValid) {
+                        proxyTime = this._fitToLmits(proxyTime);
+                        return proxyTime;
+                    }
+
+                    spare.buffer = (spare.buffer || 0) * 10 + input;
+
+                    return this.datetime;
+                }
+            },
+
+            _crement: function _crement(operator, spare) {
+
+                if (spare.field === 'Delimiter') return;
+
+                var fnName = void 0,
+                    newValue = spare.value;
+
+                if (spare.field === 'AMPM') {
+                    fnName = 'setUTCHours';
+                    newValue += operator * 12;
+                } else if (spare.field === 'Weekday') {
+                    fnName = 'setUTCDate';
+                    newValue += operator;
+                } else {
+                    fnName = 'setUTC' + spare.field;
+                    newValue += operator;
+                }
+
+                var proxyTime = new Date(this.datetime);
+
+                proxyTime[fnName](newValue);
+
+                var result = this._fitToLmits(proxyTime);
+
+                if (result.getTime() !== this.datetime.getTime()) {
+
+                    this.datetime = result;
+
+                    this._refresh();
+
+                    this.$element.trigger('change', this.datetime);
+                }
+            },
+
+            _modify: function _modify(input, spare) {
+
+                var maxValue = this._getMaxFieldValueAtDate(this.datetime, spare.field);
+
+                var result = this._calculateNextValue(input, spare, maxValue);
+
+                if (result !== this.datetime) {
+                    this.datetime = result;
+
+                    this._refresh();
+
+                    this.$element.trigger('change', this.datetime);
+                }
+            },
+
+            /*
+             * @param timestamp {int}
+             * @return {string}
+             * */
+            _disassembleTimestamp: function _disassembleTimestamp(datetime, locale, format) {
+
+                var result = [],
+                    offset = 0;
+
+                //NaN check
+                if (datetime == 'Invalid Date') return result;
+
+                // undefined and null check
+                if (datetime == undefined) return result;
+
+                var pattern = format.trim().match(/\w+|\S|\s/g);
+
+                var Date = datetime.getUTCDate(),
+
+                // Day          = datetime.getUTCDay(),
+                FullYear = datetime.getUTCFullYear(),
+                    Hours = datetime.getUTCHours(),
+
+                // Milliseconds = datetime.getUTCMilliseconds(),
+                Minutes = datetime.getUTCMinutes(),
+                    Month = datetime.getUTCMonth(),
+                    Seconds = datetime.getUTCSeconds(),
+                    timestamp = datetime.getTime();
+
+                for (var i = 0; i < pattern.length; i++) {
+
+                    var intlOption = { timeZone: 'UTC' },
+                        _spare = {},
+                        _l = locale + '-u-nu-latn',
+                        _p = void 0;
+
+                    switch (pattern[i]) {
+
+                        /*
+                         //era is not supported yet
+                         case 'G':
+                         intlOption  = {era: 'short', year: 'numeric', timeZone: 'UTC'};
+                         _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                         _spare.value     = FullYear;
+                         _spare.field = 'FullYear';
+                          break;
+                         */
+
+                        case 'yy':
+                            intlOption.year = '2-digit';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = FullYear;
+                            _spare.field = 'FullYear';
+                            break;
+
+                        case 'yyyy':
+                            intlOption = { year: 'numeric', timeZone: 'UTC' };
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = FullYear;
+                            _spare.field = 'FullYear';
+                            break;
+
+                        case 'M':
+                            intlOption.month = '2-digit';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Month;
+                            _spare.field = 'Month';
+                            break;
+
+                        case 'MM':
+                            intlOption.month = 'short';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Month;
+                            _spare.field = 'Month';
+                            break;
+
+                        case 'MMM':
+                            intlOption.month = 'narrow';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Month;
+                            _spare.field = 'Month';
+                            break;
+
+                        case 'MMMM':
+                            intlOption.month = 'long';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Month;
+                            _spare.field = 'Month';
+                            break;
+
+                        case 'L':
+                            intlOption.month = 'long';
+                            intlOption.day = '2-digit';
+                            // here we need the correct form of the month name
+                            _spare.strval = Intl.DateTimeFormat(locale, {
+                                day: '2-digit',
+                                month: 'long'
+                            }).format(timestamp).substr(3);
+                            _spare.value = Month;
+                            _spare.field = 'Month';
+                            break;
+
+                        case 'd':
+                            intlOption.day = 'numeric';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Date;
+                            _spare.field = 'Date';
+                            break;
+
+                        case 'dd':
+                            intlOption.day = '2-digit';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Date;
+                            _spare.field = 'Date';
+                            break;
+
+                        case 'EE':
+                            intlOption.weekday = 'short';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Date;
+                            _spare.field = 'Weekday';
+                            break;
+
+                        case 'EEE':
+                            intlOption.weekday = 'narrow';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Date;
+                            _spare.field = 'Weekday';
+                            break;
+
+                        case 'EEEE':
+                            intlOption.weekday = 'long';
+                            _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
+                            _spare.value = Date;
+                            _spare.field = 'Weekday';
+                            break;
+
+                        case 'h':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Hours % 12);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'hh':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Hours % 12);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'H':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Hours);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'HH':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Hours);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'm':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Minutes);
+                            _spare.value = Minutes;
+                            _spare.field = 'Minutes';
+                            break;
+
+                        case 'mm':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Minutes);
+                            _spare.value = Minutes;
+                            _spare.field = 'Minutes';
+                            break;
+
+                        case 's':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Seconds);
+                            _spare.value = Seconds;
+                            _spare.field = 'Seconds';
+                            break;
+
+                        case 'ss':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Seconds);
+                            _spare.value = Seconds;
+                            _spare.field = 'Seconds';
+                            break;
+
+                        case 'a':
+
+                            // very special case
+                            // We do not know AMPM translation for unknown language.
+                            // To detect we ask Intl to translate
+                            // but Intl won't translate it without hours
+                            // Due to non-latin numbers are treated by regexp as letters
+                            // we force locale to use latin numbers and trim them out
+                            // Wzhuh!
+
+
+                            intlOption.hour = 'numeric';
+                            intlOption.hour12 = true;
+                            _p = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
+
+                            _spare.strval = _p.match(/[^\d\s]+/g)[0];
+                            _spare.value = Hours;
+                            _spare.field = 'AMPM';
+
+                            break;
+
+                        // delimeter
+                        default:
+                            _spare.strval = pattern[i];
+                            _spare.field = 'Delimiter';
+                            break;
+                    }
+
+                    _spare.length = _spare.strval.length;
+                    _spare.offset = offset;
+                    offset += _spare.length;
+                    result.push(_spare);
+                }
+
+                return result;
+            },
+
+            _validate: function _validate(datetime) {
+
+                var timestamp = datetime.getTime();
+                var timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN;
+                var datePart = timestamp - timePart;
+
+                var validTime = true,
+                    validDate = true;
+
+                var isMaxDate = isFinite(this.options.maxDate);
+                var isMaxTime = isFinite(this.options.maxTime);
+                var isMinDate = isFinite(this.options.minDate);
+                var isMinTime = isFinite(this.options.minTime);
+                var isNightRange = this.options.minTime > this.options.maxTime;
+
+                if (isMinTime && isMaxTime) {
+                    validTime = isNightRange ? this.options.maxTime >= timePart || timePart >= this.options.minTime : this.options.maxTime >= timePart && timePart >= this.options.minTime;
+                }
+
+                if (isMinDate && !isMinTime) {
+                    validDate = validDate && timestamp >= this.options.minDate;
+                }
+
+                if (isMaxDate && !isMaxTime) {
+                    validDate = validDate && timestamp <= this.options.maxDate;
+                }
+
+                if (isMinDate && isMinTime) {
+                    validDate = validDate && datePart >= this.options.minDate;
+                }
+
+                if (isMaxDate && isMaxTime) {
+                    validDate = validDate && datePart <= this.options.maxDate;
+                }
+
+                return validDate && validTime;
+            },
+
+            _fitToLmits: function _fitToLmits(datetime) {
+
+                if (isNaN(datetime)) return datetime;
+
+                var timestamp = datetime.getTime();
+
+                var timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN,
+                    //this is trick for negative timestamps
+                datePart = timestamp - timePart;
+
+                if (!isNaN(this.options.minTime) && !isNaN(this.options.maxTime)) {
+
+                    if (this.options.maxTime > this.options.minTime) {
+                        timePart = Math.max(this.options.minTime, Math.min(this.options.maxTime, timePart));
+                    } else {
+                        var nearestLimit = Math.abs(timePart - this.options.maxTime) < Math.abs(timePart - this.options.minTime) ? this.options.maxTime : this.options.minTime;
+                        timePart = timePart > this.options.minTime || timePart < this.options.maxTime ? timePart : nearestLimit;
+                    }
+
+                    if (!isNaN(this.options.minDate)) {
+                        datePart = Math.max(datePart, this.options.minDate);
+                    }
+
+                    if (!isNaN(this.options.maxDate)) {
+                        datePart = Math.min(datePart, this.options.maxDate);
+                    }
+                } else {
+
+                    timePart = 0;
+
+                    var mD = isNaN(this.options.minDate) ? -Infinity : this.options.minDate;
+                    var MD = isNaN(this.options.maxDate) ? Infinity : this.options.maxDate;
+
+                    datePart = Math.max(mD, Math.min(MD, timestamp));
+
+                    if (isNaN(datePart)) {
+                        datePart = timestamp;
+                    }
+                }
+
+                return new Date(datePart + timePart);
+            },
+
+            getTime: function getTime() {
+                return this.datetime;
+            },
+
+            setTime: function setTime(date) {
+
+                this.datetime = new Date(date);
+                this._refresh();
+            },
+
+            setOptions: function setOptions(options) {
+
+                this.options = Object.assign({}, this.options, options);
+
+                this.datetime = options.hasOwnProperty('datetime') ? new Date(options.datetime) : this.datetime;
+
+                var mD = new Date(this.options.minDate).getTime();
+                var MD = new Date(this.options.maxDate).getTime();
+                var mT = new Date(this.options.minTime).getTime();
+                var MT = new Date(this.options.maxTime).getTime();
+
+                this.options.minTime = (mT % DAYLEN + DAYLEN) % DAYLEN; // NaN, number [0...86400000 - 1]
+                this.options.maxTime = (MT % DAYLEN + DAYLEN) % DAYLEN;
+                this.options.minDate = isNaN(mT) ? mD : mD - mD % DAYLEN; // NaN, number
+                this.options.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
+
+                if (!isNaN(this.options.minTime)) {
+                    this.options.maxTime = isNaN(this.options.maxTime) ? DAYLEN : this.options.maxTime;
+                }
+
+                if (!isNaN(this.options.maxTime)) {
+                    this.options.minTime = isNaN(this.options.minTime) ? 0 : this.options.minTime;
+                }
+
+                this._refresh();
+            },
+
+            destroy: function destroy() {
+                this.element.removeEventListener('mouseup', this._handleMouseDown);
+                this.element.removeEventListener('keydown', this._handleKeydown);
+                this.element.removeEventListener('mousewheel', this._handleMousewheel);
+
+                $(this.element).removeData(pluginName);
+            }
+
+        };
+
+        // A really lightweight plugin wrapper around the constructor,
+        // preventing against multiple instantiations
+        $.fn[pluginName] = function (method, options) {
+
+            /* eslint-disable no-console */
+            if (!this.data(pluginName)) {
+
+                if (typeof method === 'string') {
+                    console.warn('datetime plugin expect options object as first argument');
+                    return;
+                }
+
+                this.data(pluginName, new Plugin(this, method));
+
+                return this;
+            } else {
+                //calling method
+                var instance = this.data(pluginName);
+
+                if (typeof instance[method] !== 'function') {
+                    console.warn('method ', method, ' not exist');
+                    return;
+                }
+
+                return instance[method](options);
+            }
+            /* eslint-enable no-console */
+        };
+    })(jQuery, window, document);
+});
