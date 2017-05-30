@@ -162,6 +162,7 @@
                         if (previousSpareIndex !== this.currentSpareIndex)
                         {
                              e.preventDefault();
+                             e.stopImmediatePropagation();
                         }
                     }
                     break;
