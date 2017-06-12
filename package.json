@@ -2,7 +2,7 @@
   "name": "datetime-entry",
   "version": "1.1.8",
   "description": "",
-  "main": "datetime.min.js",
+  "main": "dist/datetime.min.js",
   "scripts": {
     "test": "karma start --singleRun --browsers Firefox",
     "build:prod": "BABEL_ENV=production babel src -o dist/datetime.min.js ",
