@@ -12,11 +12,10 @@
 
         $(function(){
             $('#basic').datetime({
-                locale: 'ru',
-                format:  'sdfsg dd L yyyy HH:mm   fgfgf ',
-               // datetime: Date.now(),
-                minTime: new Date('Jan 01 2017 08:00:00 UTC'),
-                maxTime: new Date('Jan 01 2017 23:00:00 UTC'),
+                datetime:   '01/03/2017 00:01',
+                locale: 'en',
+                format:  'L yyyy hh:mm a',
+              
             })
                 .on('change', function(e, arg){
                     console.log(arg);

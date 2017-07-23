@@ -29,6 +29,16 @@ describe('Time suite', function(){
 
     });
 
+    it('12 a.m. means meednight', function(){
+        const dt = new Date('01/05/2017 00:00:00 UTC');
+        plug.setOptions({format: 'hh:mm a', locale: 'en' });
+        plug.setTime(dt);
+        const val = $input.val();
+        expect(val).toEqual('12:00 AM');
+
+    });
+
+
     it('time - in range', function(){
         const dt = new Date('01/05/2017 10:02:03 UTC');
         const result = plug._validate(dt);

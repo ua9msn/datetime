@@ -112,6 +112,7 @@
                 if (!this.spares.length) {
                     this.datetime = new Date();
                     this._refresh();
+                    this.$element.trigger('change', this.datetime);
                 }
             },
 
@@ -475,7 +476,7 @@
                             _spare.strval = Intl.DateTimeFormat(locale, {
                                 day: '2-digit',
                                 month: 'long'
-                            }).format(timestamp).substr(3);
+                            }).format(timestamp).replace(/[\s+\d+]/g, '');
                             _spare.value = Month;
                             _spare.field = 'Month';
                             break;
@@ -516,12 +517,24 @@
                             break;
 
                         case 'h':
-                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Hours % 12);
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Hours % 12 || 12);
                             _spare.value = Hours;
                             _spare.field = 'Hours';
                             break;
 
                         case 'hh':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Hours % 12 || 12);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'k':
+                            _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 1 }).format(Hours % 12);
+                            _spare.value = Hours;
+                            _spare.field = 'Hours';
+                            break;
+
+                        case 'kk':
                             _spare.strval = Intl.NumberFormat(locale, { minimumIntegerDigits: 2 }).format(Hours % 12);
                             _spare.value = Hours;
                             _spare.field = 'Hours';
