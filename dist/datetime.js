@@ -112,7 +112,6 @@
                 if (!this.spares.length) {
                     this.datetime = new Date();
                     this._refresh();
-                    this.$element.trigger('change', this.datetime);
                 }
             },
 
@@ -442,21 +441,21 @@
                             break;
 
                         case 'M':
-                            intlOption.month = '2-digit';
+                            intlOption.month = 'numeric';
                             _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
                             _spare.value = Month;
                             _spare.field = 'Month';
                             break;
 
                         case 'MM':
-                            intlOption.month = 'short';
+                            intlOption.month = '2-digit';
                             _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
                             _spare.value = Month;
                             _spare.field = 'Month';
                             break;
 
                         case 'MMM':
-                            intlOption.month = 'narrow';
+                            intlOption.month = 'short';
                             _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
                             _spare.value = Month;
                             _spare.field = 'Month';
