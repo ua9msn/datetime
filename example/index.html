@@ -13,8 +13,9 @@
         $(function(){
             $('#basic').datetime({
                 datetime:   '01/03/2017 00:01',
-                locale: 'en',
-                format:  'L yyyy hh:mm a',
+                locale: 'ru',
+                format:  'dd L yyyy HH:mm',
+                timeZoneOffset: (new Date()).getTimezoneOffset()
               
             })
                 .on('change', function(e, arg){

@@ -30,6 +30,7 @@
               datetime: NaN,
               locale:   navigator.language,
               format:   'dd.MM.yyyy HH:mm:ss',
+              timeZoneOffset: 0,
               minDate:  NaN,
               maxDate:  NaN,
               minTime:  NaN,
@@ -94,7 +95,7 @@
 
         _ensureValueExist: function(){
             if(!this.spares.length) {
-                this.datetime = new Date();
+                this.datetime = new Date( Date.now() - this.options.timeZoneOffset * 60 * 1000 );
                 this._refresh();
             }
 

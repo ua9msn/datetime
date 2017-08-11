@@ -4,14 +4,10 @@
 
 'use strict';
 
-describe('Time suite', function(){
+describe('UI suite', function(){
 
     let $input,
         plug;
-
-
-    // Since I've got the problem with running tests both with karma and test runner,
-    // due to the path and ajax loading of local files, I set the fixture as the string here.
 
     //jasmine.getFixtures().fixturesPath = 'base/spec/javascripts/fixtures';
 
@@ -38,26 +34,5 @@ describe('Time suite', function(){
 
     });
 
-
-    it('time - in range', function(){
-        const dt = new Date('01/05/2017 10:02:03 UTC');
-        const result = plug._validate(dt);
-        expect( result ).toEqual( true );
-
-    });
-
-    it('time - less than limits', function(){
-        const dt = new Date('01/01/2015 08:02:03 UTC');
-        const result = plug._validate(dt);
-        expect( result ).toEqual( false );
-
-    });
-
-    it('time - bigger than limits', function(){
-        const dt = new Date('01/01/2018 18:02:03 UTC');
-        const result = plug._validate(dt);
-        expect( result ).toEqual( false );
-
-    });
 
 });
