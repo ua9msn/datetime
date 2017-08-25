@@ -592,7 +592,7 @@
                             intlOption.hour12 = true;
                             _p = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
 
-                            _spare.strval = _p.replace(/[\d|:]/g, '');
+                            _spare.strval = _p.replace(/[\d|:]/g, '').trim();
                             _spare.value = Hours;
                             _spare.field = 'AMPM';
 
