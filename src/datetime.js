@@ -470,7 +470,7 @@
                         _spare.strval    = Intl.DateTimeFormat(locale, {
                             day:   '2-digit',
                             month: 'long'
-                        }).format(timestamp).replace(/[\s+\d+]/g, '');
+                        }).format(timestamp).replace(/[\s+\d+\.]/g, '');
                         _spare.value     = Month;
                         _spare.field     = 'Month';
                         break;
@@ -583,10 +583,11 @@
 
 
                         intlOption.hour   = 'numeric';
+                        intlOption.minute = 'numeric';
                         intlOption.hour12 = true;
                         _p                = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
 
-                        _spare.strval = _p.match(/[^\d\s]+/g)[0];
+                        _spare.strval = _p.replace(/[\d|:]/g, '');
                         _spare.value  = Hours;
                         _spare.field  = 'AMPM';
 
