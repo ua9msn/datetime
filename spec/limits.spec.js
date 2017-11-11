@@ -9,6 +9,17 @@ describe('Fit', function(){
     let $input,
         plug;
 
+    const format =  {
+        hour12:  true,
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        weekday: 'long',
+        year:    'numeric',
+        month:   'long',
+        day:     'numeric'
+    };
+
 
     // Since I've got the problem with running tests both with karma and test runner,
     // due to the path and ajax loading of local files, I set the fixture as the string here.
@@ -20,8 +31,8 @@ describe('Fit', function(){
         $input = $('#dt');
         $input.datetime({
             locale: 'ru',
-            format:  'dd L yyyy HH:mm:ss',
-            datetime: 1487136412359 // 15 февраля 2017 05:26:52
+            format:  format,
+            datetime: new Date(1487136412359) // 15 февраля 2017 05:26:52
         });
         plug = $input.data().datetime;
 
@@ -110,7 +121,7 @@ describe('Fit', function(){
         };
 
         plug.setOptions( options ) ;
-        const resultDT = plug._fitToLmits(dt);
+        const resultDT = plug._fitToLimits(dt);
         expect( resultDT ).toEqual( dt );
 
     });
@@ -127,7 +138,7 @@ describe('Fit', function(){
         };
 
         plug.setOptions( options ) ;
-        const resultDT = plug._fitToLmits(dt);
+        const resultDT = plug._fitToLimits(dt);
         expect( resultDT ).toEqual( options.minDate );
 
     });
@@ -144,7 +155,7 @@ describe('Fit', function(){
         };
 
         plug.setOptions( options ) ;
-        const resultDT = plug._fitToLmits(dt);
+        const resultDT = plug._fitToLimits(dt);
         expect( resultDT ).toEqual( options.maxDate );
 
     });
@@ -161,7 +172,7 @@ describe('Fit', function(){
         };
 
         plug.setOptions( options ) ;
-        const resultDT = plug._fitToLmits(dt);
+        const resultDT = plug._fitToLimits(dt);
         expect( resultDT ).toEqual( dt );
 
     });
@@ -178,7 +189,7 @@ describe('Fit', function(){
         };
 
         plug.setOptions( options ) ;
-        const resultDT = plug._fitToLmits(dt);
+        const resultDT = plug._fitToLimits(dt);
         expect( resultDT ).toEqual( new Date('Jan 01 2017 23:00:00 UTC') );
 
     });

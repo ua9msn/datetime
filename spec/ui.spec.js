@@ -9,17 +9,26 @@ describe('UI suite', function(){
     let $input,
         plug;
 
+    const format =  {
+        hour12:  true,
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        weekday: 'long',
+        year:    'numeric',
+        month:   'long',
+        day:     'numeric'
+    };
+
     //jasmine.getFixtures().fixturesPath = 'base/spec/javascripts/fixtures';
 
     beforeEach(function () {
         setFixtures('<input id="dt" type="text" />');
         $input = $('#dt');
         $input.datetime({
-            locale: 'ru',
-            format:  'dd L yyyy HH:mm:ss',
-            minTime: new Date('01/01/2017 09:00:00 UTC'),
-            maxTime: new Date('01/01/2017 17:00:00 UTC')
 
+            locale: 'en',
+            format:  format
         });
         plug = $input.data().datetime;
 
@@ -27,7 +36,13 @@ describe('UI suite', function(){
 
     it('12 a.m. means midnight', function(){
         const dt = new Date('01/05/2017 00:00:00 UTC');
-        plug.setOptions({format: 'hh:mm a', locale: 'en' });
+        plug.setOptions({
+            format:    {
+                hour12: true,
+                hour:   '2-digit',
+                minute: '2-digit',
+            }
+        });
         plug.setTime(dt);
         const val = $input.val();
         expect(val).toEqual('12:00 AM');

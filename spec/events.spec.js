@@ -6,8 +6,17 @@
 
 describe('Events suite', function(){
 
-    var $input;
+    let $input;
 
+    const format =  {
+        hour12:  false,
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        year:    'numeric',
+        month:   'long',
+        day:     'numeric'
+    };
 
     // Since I've got the problem with running tests both with karma and test runner,
     // due to the path and ajax loading of local files, I set the fixture as the string here.
@@ -19,8 +28,8 @@ describe('Events suite', function(){
         $input = $('#dt');
         $input.datetime({
             locale: 'ru',
-            format:  'dd L yyyy HH:mm:ss',
-            datetime: 1487136412359 // 15 февраля 2017 05:26:52
+            format:  format,
+            datetime: new Date(1487136412359) // 15 февраля 2017 05:26:52
         });
 
     });

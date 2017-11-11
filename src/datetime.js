@@ -25,143 +25,282 @@
 
     const DAYLEN = 86400000;
 
-    const pluginName = 'datetime',
-          defaults   = {
+    const hashTypeFn = {
+        'weekday':   'Date',
+        'month':     'Month',
+        'day':       'Date',
+        'year':      'FullYear',
+        'hour':      'Hours',
+        'minute':    'Minutes',
+        'second':    'Seconds',
+        'dayperiod': 'Hours'
+    };
+
+    const FORMAT = {
+        hour12:  false,
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        weekday: 'long',
+        year:    'numeric',
+        month:   'long',
+        day:     'numeric',
+    };
+
+    const pluginName   = 'datetime',
+          defaultProps = {
               datetime: NaN,
               locale:   navigator.language,
-              format:   'dd.MM.yyyy HH:mm:ss',
-              timeZoneOffset: 0,
+              format:   FORMAT,
+              useUTC:   true,
               minDate:  NaN,
               maxDate:  NaN,
               minTime:  NaN,
-              maxTime:  NaN
+              maxTime:  NaN,
+              onChange: t => {}
           };
 
-    function Plugin(element, options){
-        this.$element          = element;
-        this.element           = element[0];
-        this.currentSpareIndex = 0;
-        this.spares            = [];
+    function Plugin(element, props){
 
-        this._handleMouseDown  = this._handleMouseDown.bind(this);
-        this._handleKeydown    = this._handleKeydown.bind(this);
+        const _props = Object.assign({}, defaultProps, props);
+
+        this.state = {
+            type:     undefined,
+            parts:    [],
+            datetime: new Date(_props.datetime)
+        };
+
+        this.$element = element;
+        this.element  = element[0];
+
+        this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleKeydown   = this._handleKeydown.bind(this);
         this._handleMousewheel = this._handleMousewheel.bind(this);
 
-        this._init();
-        //clone value
+        this.element.setSelectionRange(0, 0);
 
-        this.setOptions(Object.assign({}, defaults, options));
+        // this.element.addEventListener('select', this.handleSelection.bind(this));
+        this.element.addEventListener('mouseup', this._handleMouseDown);
+        this.element.addEventListener('keydown', this._handleKeydown);
+        this.element.addEventListener('mousewheel', this._handleMousewheel);
+
+        this.setOptions(_props);
     }
 
     Plugin.prototype = {
 
-        _init: function(){
+        setState: function(newPartialState, callback){
+
+            this.state = Object.assign({}, this.state, newPartialState);
+
+            this._render();
+
+            if(callback) {
+                callback.call(this);
+            }
+
+        },
+
+        setOptions: function(props){
+
+            this.props = Object.assign({}, this.props, props);
+
+            const format = Object.assign( {}, this.props.format, {
+                timeZone: this.props.useUTC ? 'Etc/UTC': undefined
+            });
+
+            this.dtFormatter = Intl.DateTimeFormat(this.props.locale, format);
+
+            const state = this._setDateTime( props.datetime);
+
+            this.setState(state);
+
+            let mD = new Date(this.props.minDate).getTime();
+            let MD = new Date(this.props.maxDate).getTime();
+            let mT = new Date(this.props.minTime).getTime();
+            let MT = new Date(this.props.maxTime).getTime();
+
+            this.props.minTime = ( mT % DAYLEN + DAYLEN ) % DAYLEN; // NaN, number [0...86400000 - 1]
+            this.props.maxTime = ( MT % DAYLEN + DAYLEN ) % DAYLEN;
+            this.props.minDate = isNaN(mT) ? mD : mD - mD % DAYLEN;  // NaN, number
+            this.props.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
+
+            if(!isNaN(this.props.minTime)) {
+                this.props.maxTime = isNaN(this.props.maxTime) ? DAYLEN : this.props.maxTime;
+            }
+
+            if(!isNaN(this.props.maxTime)) {
+                this.props.minTime = isNaN(this.props.minTime) ? 0 : this.props.minTime;
+            }
+
+            this._render();
+
+        },
+
+        getTime: function(){
+            return this.state.datetime;
+        },
+
+        setTime: function(date){
+            const newState = this._setDateTime(date);
+            this.setState(newState);
+        },
+
+        _render: function(){
+
+            let string;
+
+            try {
+                string = this.dtFormatter.format(this.state.datetime);
+            } catch(E) {
+                string = '';
+            }
+
+            this.element.value = string;
 
             this.element.setSelectionRange(0, 0);
 
-            // this.element.addEventListener('select', this.handleSelection.bind(this));
-            this.element.addEventListener('mouseup', this._handleMouseDown);
-            this.element.addEventListener('keydown', this._handleKeydown);
-            this.element.addEventListener('mousewheel', this._handleMousewheel);
+            const type = this.state.type || '';
 
+            const partIndex = this.state.parts.findIndex(p => type ? p.type === type : p.type !== 'literal');
+
+            if(!~partIndex) return;
+
+            const ss = this.state.parts
+                .slice(0, partIndex)
+                .reduce((p, c) => p + c.value.length, 0);
+
+            const se = ss + this.state.parts[partIndex].value.length;
+
+            this.element.setSelectionRange(ss, se);
         },
 
-        _refresh: function(){
-            this.spares        = this._disassembleTimestamp(this.datetime, this.options.locale, this.options.format);
-            this.element.value = this.spares.map(s => s.strval).join('');
+        _setDateTime(datetime){
 
-            const spare = this.spares[this.currentSpareIndex];
-            if(spare) {
-                this.element.setSelectionRange(spare.offset, spare.offset + spare.length);
+            let parts, type;
+
+            datetime = new Date(datetime);
+
+            datetime = this._fitToLimits(datetime);
+
+            try {
+                parts = this.dtFormatter.formatToParts(datetime);
+                type  = this.state.type || parts.find(p => p.type !== 'literal').type;
+            } catch(E) {
+                parts = [];
+                type  = undefined;
             }
+
+            return({datetime, parts, type});
+
+            // this.setState({
+            //     type,
+            //     datetime,
+            //     parts,
+            // }, () => {
+            //     this.props.onChange(datetime);
+            // });
+
         },
 
-        _handleMouseDown: function(e){
+        _handleMouseDown(e){
 
             e.preventDefault();
-            e.stopPropagation();
 
-            this._ensureValueExist();
+            const parts = this.state.parts;
+            let ss      = 0,
+                  se    = 0,
+                  cp    = e.target.selectionStart;
 
-            this.currentSpareIndex = this._calculateSpareIndexAtCaretPosition(e.target.selectionStart, this.spares);
-            const spare            = this.spares[this.currentSpareIndex];
+            const selection = parts.reduce((p, c) =>{
+                ss = se;
+                se = ss + c.value.length;
 
-            e.target.focus();
+                if(c.type !== 'literal' && cp >= ss && cp <= se) {
+                    p.type = c.type;
+                    p.ss   = ss;
+                    p.se   = se;
+                }
 
-            if(!spare) return;
+                return p;
 
-            e.target.setSelectionRange(spare.offset, spare.offset + spare.length);
+            }, {type: '', ss: 0, se: 0});
+
+            this.state.type = selection.type;
+            // this.state.ss = selection.ss ;
+            // this.state.se = selection.se ;
+
+            this._render();
+
         },
 
-        _ensureValueExist: function(){
-            if(!this.spares.length) {
-                this.datetime = new Date( Date.now() - this.options.timeZoneOffset * 60 * 1000 );
-                this._refresh();
-            }
-
-        },
-
-        _handleKeydown: function(e){
-
-            this._ensureValueExist();
-
-            const spare = this.spares[this.currentSpareIndex];
+        _handleKeydown(e){
 
             switch(e.which) {
 
-                case KEY_LEFT:
+                case KEY_LEFT: {
                     e.preventDefault();
-                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, -1, function(x){
-                        return x.field !== 'Delimiter';
-                    });
-                    this._refresh();
+                    const type = this._getNextTypeInDirection(-1);
+                    this.setState({type});
                     break;
+                }
 
-                case KEY_RIGHT:
+                case KEY_RIGHT: {
                     e.preventDefault();
-                    this.currentSpareIndex = this._calculateNextSpareIndex(this.spares, this.currentSpareIndex, 1, function(x){
-                        return x.field !== 'Delimiter';
-                    });
-                    this._refresh();
+                    const type = this._getNextTypeInDirection(1);
+                    this.setState({type});
                     break;
+                }
 
-                case KEY_UP:
+                case KEY_UP: {
                     e.preventDefault();
-                    this._crement(1, spare);
+                    const newDatetime = this._crement(1, this.state.type);
+                    const newState    = this._setDateTime(newDatetime);
+                    this.setState(newState, this._notify);
                     break;
+                }
+                case KEY_DOWN: {
+                    e.preventDefault();
+                    const newDatetime = this._crement(-1, this.state.type);
+                    const newState    = this._setDateTime(newDatetime);
+                    this.setState(newState, this._notify);
+                    break;
+                }
 
-                case KEY_DOWN:
+                case KEY_DELETE: {
                     e.preventDefault();
-                    this._crement(-1, spare);
-                    break;
+                    const newState = this._setDateTime(new Date(NaN));
+                    this.setState(newState, this._notify);
 
-                case KEY_DELETE:
-                    e.preventDefault();
-                    this.datetime = new Date(NaN);
-                    this._refresh();
                     break;
+                }
 
                 case KEY_A:
-                case KEY_C:
+                case KEY_C: {
                     if(!e.ctrlKey) {
                         e.preventDefault();
                     }
                     break;
 
-                default:
+                }
+
+                default: {
                     // https://github.com/ua9msn/datetime/issues/2
                     e.preventDefault();
                     // ignore non-numbers
                     if(!isFinite(e.key)) return;
+                    // ignore if nothing
+                    if(!this.state.type) return;
                     // ignore ampm
-                    if(spare.field === 'AMPM') return;
+                    if(this.state.type === 'dayperiod') return;
                     // ignore Weekday
-                    if(spare.field === 'Weekday') return;
+                    if(this.state.type === 'weekday') return;
 
-                    this._modify(+e.key, spare);
+                    this._modify(+e.key, this.state.type);
 
                     break;
 
+                }
             }
 
         },
@@ -170,86 +309,120 @@
             e.preventDefault();
             e.stopPropagation();
 
-            this._ensureValueExist();
-
-            const spare = this.spares[this.currentSpareIndex];
             const direction = Math.sign(e.wheelDelta);
 
-            this._crement(direction, spare);
-            this._refresh();
+            const newDatetime = this._crement(direction, this.state.type);
+            const newState    = this._setDateTime(newDatetime);
+            this.setState(newState, this._notify);
+
+
+            this._render();
 
         },
 
-        _calculateSpareIndexAtCaretPosition: function(caretPosition, spares){
+        _getNextTypeInDirection(direction){
+            direction = Math.sign(direction);
 
-            let index = 0,
-                s = spares.findIndex( spare => spare.field !== 'Delimiter' );
+            if(!this.state.parts || !this.state.parts.length) return;
 
-            for(s; s < spares.length ; s++) {
+            let curIndex = this.state.parts.findIndex(p => p.type === this.state.type);
 
-                if(spares[s].field !== 'Delimiter') {
-                    index = s;
-                }
-
-                if(spares[s].offset >= caretPosition){
-                    break;
-                }
-
+            if(!~curIndex) {
+                curIndex = this.state.parts.findIndex(p => p.type !== 'literal');
             }
 
-            return index;
-        },
+            let ono = false, index = curIndex;
 
-        _calculateNextSpareIndex: function(spares, currentIndex, direction, testFn){
-
-            direction = Math.sign(direction); //make sure the direction is +1 or -1
-            let newIndex = currentIndex ;
-            newIndex = newIndex / 1;
-
-            for(let y = currentIndex + direction ; y >= 0 && y < spares.length ; y += direction ){
-                if( testFn(spares[y]) ) {
-                    newIndex = y;
-                    break;
-                }
+            while(!ono && this.state.parts[index + direction]) {
+                index += direction;
+                ono = this.state.parts[index] && this.state.parts[index].type !== 'literal';
             }
 
-            return newIndex;
+            return this.state.parts[ono ? index : curIndex].type;
+        },
+
+        _crement(operator, type){
+
+            const part = this.state.parts.find(p => p.type === type);
+
+            const dt = this.state.datetime.getTime() || this.props.preset || Date.now();
+
+            const proxyTime = new Date(dt);
+
+            if(!part || type === 'literal') return proxyTime;
+
+            let fnName   = (this.props.useUTC ? 'UTC' : '' ) + hashTypeFn[type],
+                newValue = proxyTime['get' + fnName]();
+
+            if(part.type === 'dayperiod') {
+                newValue += operator * 12;
+            } else if(part.type === 'weekday') {
+                newValue += operator;
+            } else {
+                newValue += operator;
+            }
+
+            proxyTime['set' + fnName](newValue);
+
+            return this._fitToLimits(proxyTime);
 
         },
 
-        _getMaxFieldValueAtDate: function(date, fieldName){
+        _modify(input, type){
 
-            const fy = date.getFullYear();
-            const m  = date.getMonth();
+            const maxValue = this._getMaxFieldValueAtDate(this.state.datetime, type);
+
+            const newDatetime = this._calculateNextValue(input, type, maxValue);
+
+            const newState = this._setDateTime(newDatetime);
+
+            this.setState(newState, this._notify);
+
+            // if(result !== this.state.datetime) {
+            //
+            //     this.setState({
+            //         datetime: result,
+            //         spares : this._disassembleTimestamp(result, this.state.locale, this.state.format)
+            //     }, this._notify)
+            //
+            // }
+        },
+
+        _getMaxFieldValueAtDate(date, fieldName){
+
+            const fy = this.props.useUTC ? date.getUTCFullYear(): date.getFullYear();
+            const m  = this.props.useUTC ? date.getUTCMonth()   : date.getMonth();
 
             switch(fieldName) {
-                case 'FullYear':
+                case 'year':
                     return 9999;
-                case 'Month':
+                case 'month':
                     return 12;
-                case 'Date':
+                case 'day':
                     return (new Date(fy, m + 1, 0)).getDate(); // get number of days in the month
-                case 'Hours':
+                case 'hour':
                     return 23;
-                case 'Minutes':
+                case 'minute':
                     return 59;
-                case 'Seconds':
+                case 'second':
                     return 59;
                 default:
                     break;
 
             }
 
-
         },
 
-        _calculateNextValue: function(input, spare, max){
+        _calculateNextValue(input, type, max){
 
-            let prev = spare.buffer || spare.value;
+            const getFN = 'get' + (this.props.useUTC ? 'UTC' : '' ) + hashTypeFn[type];
+            const setFN = 'set' + (this.props.useUTC ? 'UTC' : '' ) + hashTypeFn[type];
+
+            let prev = this.state.datetime[getFN]();
 
             // in spare month has value as for Date (Jan = 0)
             // but user input supposed to be 1 for Jan
-            if(spare.field === 'Month') {
+            if(type === 'month') {
                 prev = prev + 1;
             }
 
@@ -266,21 +439,19 @@
 
             // rollback month value
             // but prevent pass 0
-            if(spare.field === 'Month') {
+            if(type === 'month') {
                 mm = mm ? mm - 1 : prev - 1;
             }
 
             // Date can not be null.
             // We allow to enter 0 if it makes valid date (10, 20, 30)
-            if(spare.field === 'Date' && mm === 0) {
+            if(type === 'day' && mm === 0) {
                 mm = prev;
             }
 
-            const fnName = 'setUTC' + spare.field;
+            let proxyTime = new Date(this.state.datetime);
 
-            let proxyTime = new Date(this.datetime);
-
-            proxyTime[fnName](mm);
+            proxyTime[setFN](mm);
 
             const isValid = this._validate(proxyTime);
 
@@ -289,17 +460,17 @@
             } else {
 
                 let isFieldValid        = true;
-                const maxDateFieldValue = ( new Date(this.options.maxDate) )['getUTC' + spare.field]();
-                const minDateFieldValue = ( new Date(this.options.minDate) )['getUTC' + spare.field]();
-                const minTimeFieldValue = ( new Date(this.options.minTime) )['getUTC' + spare.field]();  //NaN, number
-                const maxTimeFieldValue = ( new Date(this.options.maxTime) )['getUTC' + spare.field]();
-                const thisValue         = proxyTime['getUTC' + spare.field]();
+                const maxDateFieldValue = ( new Date(this.props.maxDate) )[getFN]();
+                const minDateFieldValue = ( new Date(this.props.minDate) )[getFN]();
+                const minTimeFieldValue = ( new Date(this.props.minTime) )[getFN]();  //NaN, number
+                const maxTimeFieldValue = ( new Date(this.props.maxTime) )[getFN]();
+                const thisValue         = proxyTime[getFN]();
 
-                if(spare.field === 'FullYear' || spare.field === 'Month' || spare.field === 'Date') {
+                if(type === 'year' || type === 'month' || type === 'day') {
                     isFieldValid = !(maxDateFieldValue < thisValue) && !(thisValue < minDateFieldValue);
                 }
 
-                if(spare.field === 'Hours' || spare.field === 'Minutes' || spare.field === 'Seconds') {
+                if(type === 'hour' || type === 'minute' || type === 'second') {
 
                     if(maxTimeFieldValue > minTimeFieldValue) {
                         isFieldValid = !( (maxDateFieldValue || maxTimeFieldValue) < thisValue) && !(thisValue < ( minTimeFieldValue || minDateFieldValue) );
@@ -309,308 +480,19 @@
                 }
 
                 if(isFieldValid) {
-                    proxyTime = this._fitToLmits(proxyTime);
+                    proxyTime = this._fitToLimits(proxyTime);
                     return proxyTime;
                 }
 
-                spare.buffer = (spare.buffer || 0) * 10 + input;
+                // spare.buffer = (spare.buffer || 0) * 10 + input;
 
-                return this.datetime;
+                return this.state.datetime;
 
             }
 
         },
 
-        _crement: function(operator, spare){
-
-            if(spare.field === 'Delimiter') return;
-
-            let fnName,
-                newValue = spare.value;
-
-            if(spare.field === 'AMPM') {
-                fnName = 'setUTCHours';
-                newValue += operator * 12;
-            } else if(spare.field === 'Weekday') {
-                fnName = 'setUTCDate';
-                newValue += operator;
-            } else {
-                fnName = 'setUTC' + spare.field;
-                newValue += operator;
-            }
-
-            const proxyTime = new Date(this.datetime);
-
-            proxyTime[fnName](newValue);
-
-            const result = this._fitToLmits(proxyTime);
-
-            if(result.getTime() !== this.datetime.getTime()) {
-
-                this.datetime = result;
-
-                this._refresh();
-
-                this.$element.trigger('change', this.datetime);
-            }
-
-        },
-
-        _modify: function(input, spare){
-
-            const maxValue = this._getMaxFieldValueAtDate(this.datetime, spare.field);
-
-            const result = this._calculateNextValue(input, spare, maxValue);
-
-            if(result !== this.datetime) {
-                this.datetime = result;
-
-                this._refresh();
-
-                this.$element.trigger('change', this.datetime);
-
-            }
-        },
-
-        /*
-         * @param timestamp {int}
-         * @return {string}
-         * */
-        _disassembleTimestamp: function(datetime, locale, format){
-
-            let result = [],
-                offset = 0;
-
-            //NaN check
-            if(datetime == 'Invalid Date') return result;
-
-            // undefined and null check
-            if(datetime == undefined) return result;
-
-            const pattern = format.trim().match(/\w+|\S|\s/g);
-
-            const
-                Date      = datetime.getUTCDate(),
-                // Day          = datetime.getUTCDay(),
-                FullYear  = datetime.getUTCFullYear(),
-                Hours     = datetime.getUTCHours(),
-                // Milliseconds = datetime.getUTCMilliseconds(),
-                Minutes   = datetime.getUTCMinutes(),
-                Month     = datetime.getUTCMonth(),
-                Seconds   = datetime.getUTCSeconds(),
-                timestamp = datetime.getTime();
-
-
-            for(let i = 0; i < pattern.length; i++) {
-
-                let intlOption = {timeZone: 'UTC'},
-                    _spare     = {},
-                    _l         = locale + '-u-nu-latn',
-                    _p;
-
-                switch(pattern[i]) {
-
-                    /*
-                     //era is not supported yet
-                     case 'G':
-                     intlOption  = {era: 'short', year: 'numeric', timeZone: 'UTC'};
-                     _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                     _spare.value     = FullYear;
-                     _spare.field = 'FullYear';
-
-                     break;
-                     */
-
-                    case 'yy' :
-                        intlOption.year = '2-digit';
-                        _spare.strval   = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value    = FullYear;
-                        _spare.field    = 'FullYear';
-                        break;
-
-                    case 'yyyy' :
-                        intlOption    = {year: 'numeric', timeZone: 'UTC'};
-                        _spare.strval = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value  = FullYear;
-                        _spare.field  = 'FullYear';
-                        break;
-
-                    case 'M' :
-                        intlOption.month = 'numeric';
-                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value     = Month;
-                        _spare.field     = 'Month';
-                        break;
-
-                    case 'MM' :
-                        intlOption.month = '2-digit';
-                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value     = Month;
-                        _spare.field     = 'Month';
-                        break;
-
-                    case 'MMM' :
-                        intlOption.month = 'short';
-                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value     = Month;
-                        _spare.field     = 'Month';
-                        break;
-
-                    case 'MMMM' :
-                        intlOption.month = 'long';
-                        _spare.strval    = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value     = Month;
-                        _spare.field     = 'Month';
-                        break;
-
-                    case 'L' :
-                        intlOption.month = 'long';
-                        intlOption.day   = '2-digit';
-                        // here we need the correct form of the month name
-                        _spare.strval    = Intl.DateTimeFormat(locale, {
-                            day:   '2-digit',
-                            month: 'long'
-                        }).format(timestamp).replace(/[\s+\d+\.]/g, '');
-                        _spare.value     = Month;
-                        _spare.field     = 'Month';
-                        break;
-
-                    case 'd' :
-                        intlOption.day = 'numeric';
-                        _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value   = Date;
-                        _spare.field   = 'Date';
-                        break;
-
-                    case 'dd' :
-                        intlOption.day = '2-digit';
-                        _spare.strval  = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value   = Date;
-                        _spare.field   = 'Date';
-                        break;
-
-                    case 'EE' :
-                        intlOption.weekday = 'short';
-                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value       = Date;
-                        _spare.field       = 'Weekday';
-                        break;
-
-                    case 'EEE' :
-                        intlOption.weekday = 'narrow';
-                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value       = Date;
-                        _spare.field       = 'Weekday';
-                        break;
-
-                    case 'EEEE' :
-                        intlOption.weekday = 'long';
-                        _spare.strval      = Intl.DateTimeFormat(locale, intlOption).format(timestamp);
-                        _spare.value       = Date;
-                        _spare.field       = 'Weekday';
-                        break;
-
-
-                    case 'h':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours % 12 || 12);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'hh':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours % 12 || 12);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'k':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours % 12);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'kk':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours % 12);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'H':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Hours);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'HH':
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Hours);
-                        _spare.value  = Hours;
-                        _spare.field  = 'Hours';
-                        break;
-
-                    case 'm' :
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Minutes);
-                        _spare.value  = Minutes;
-                        _spare.field  = 'Minutes';
-                        break;
-
-                    case 'mm' :
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Minutes);
-                        _spare.value  = Minutes;
-                        _spare.field  = 'Minutes';
-                        break;
-
-                    case 's' :
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 1}).format(Seconds);
-                        _spare.value  = Seconds;
-                        _spare.field  = 'Seconds';
-                        break;
-
-                    case 'ss' :
-                        _spare.strval = Intl.NumberFormat(locale, {minimumIntegerDigits: 2}).format(Seconds);
-                        _spare.value  = Seconds;
-                        _spare.field  = 'Seconds';
-                        break;
-
-                    case 'a':
-
-                        // very special case
-                        // We do not know AMPM translation for unknown language.
-                        // To detect we ask Intl to translate
-                        // but Intl won't translate it without hours
-                        // Due to non-latin numbers are treated by regexp as letters
-                        // we force locale to use latin numbers and trim them out
-                        // Wzhuh!
-
-
-                        intlOption.hour   = 'numeric';
-                        intlOption.minute = 'numeric';
-                        intlOption.hour12 = true;
-                        _p                = Intl.DateTimeFormat(_l, intlOption).format(timestamp);
-
-                        _spare.strval = _p.replace(/[\d|:]/g, '').trim();
-                        _spare.value  = Hours;
-                        _spare.field  = 'AMPM';
-
-                        break;
-
-                    // delimeter
-                    default:
-                        _spare.strval = pattern[i];
-                        _spare.field  = 'Delimiter';
-                        break;
-                }
-
-                _spare.length = _spare.strval.length;
-                _spare.offset = offset;
-                offset += _spare.length;
-                result.push(_spare);
-
-            }
-
-            return result;
-        },
-
-        _validate: function(datetime){
+        _validate(datetime){
 
             const timestamp = datetime.getTime();
             const timePart  = (timestamp % DAYLEN + DAYLEN) % DAYLEN;
@@ -619,74 +501,72 @@
             let validTime = true,
                 validDate = true;
 
-            const isMaxDate    = isFinite(this.options.maxDate);
-            const isMaxTime    = isFinite(this.options.maxTime);
-            const isMinDate    = isFinite(this.options.minDate);
-            const isMinTime    = isFinite(this.options.minTime);
-            const isNightRange = this.options.minTime > this.options.maxTime;
+            const isMaxDate    = isFinite(this.props.maxDate);
+            const isMaxTime    = isFinite(this.props.maxTime);
+            const isMinDate    = isFinite(this.props.minDate);
+            const isMinTime    = isFinite(this.props.minTime);
+            const isNightRange = this.state.minTime > this.state.maxTime;
 
             if(isMinTime && isMaxTime) {
                 validTime = isNightRange
-                    ? this.options.maxTime >= timePart || timePart >= this.options.minTime
-                    : this.options.maxTime >= timePart && timePart >= this.options.minTime;
+                    ? this.props.maxTime >= timePart || timePart >= this.props.minTime
+                    : this.props.maxTime >= timePart && timePart >= this.props.minTime;
             }
 
             if(isMinDate && !isMinTime) {
-                validDate = validDate && (timestamp >= this.options.minDate);
+                validDate = validDate && (timestamp >= this.props.minDate);
             }
 
             if(isMaxDate && !isMaxTime) {
-                validDate = validDate && (timestamp <= this.options.maxDate);
+                validDate = validDate && (timestamp <= this.props.maxDate);
             }
 
             if(isMinDate && isMinTime) {
-                validDate = validDate && (datePart >= this.options.minDate);
+                validDate = validDate && (datePart >= this.props.minDate);
             }
 
             if(isMaxDate && isMaxTime) {
-                validDate = validDate && (datePart <= this.options.maxDate);
+                validDate = validDate && (datePart <= this.props.maxDate);
             }
 
             return validDate && validTime;
 
         },
 
-        _fitToLmits: function(datetime){
+        _fitToLimits(datetime){
 
             if(isNaN(datetime)) return datetime;
 
             const timestamp = datetime.getTime();
 
-            let timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN, //this is trick for negative timestamps
-                datePart = timestamp - timePart;
+            let timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN; //this is trick for negative timestamps
+            let datePart = timestamp - timePart;
 
+            if(!isNaN(this.props.minTime) && !isNaN(this.props.maxTime)) {
 
-            if(!isNaN(this.options.minTime) && !isNaN(this.options.maxTime)) {
-
-                if(this.options.maxTime > this.options.minTime) {
-                    timePart = Math.max(this.options.minTime, Math.min(this.options.maxTime, timePart));
+                if(this.props.maxTime > this.props.minTime) {
+                    timePart = Math.max(this.props.minTime, Math.min(this.props.maxTime, timePart));
                 } else {
-                    let nearestLimit = Math.abs(timePart - this.options.maxTime) < Math.abs(timePart - this.options.minTime)
-                        ? this.options.maxTime
-                        : this.options.minTime;
-                    timePart         = timePart > this.options.minTime || timePart < this.options.maxTime ? timePart : nearestLimit;
+                    let nearestLimit = Math.abs(timePart - this.props.maxTime) < Math.abs(timePart - this.props.minTime)
+                        ? this.props.maxTime
+                        : this.props.minTime;
+                    timePart         = timePart > this.props.minTime || timePart < this.props.maxTime ? timePart : nearestLimit;
                 }
 
-                if(!isNaN(this.options.minDate)) {
-                    datePart = Math.max(datePart, this.options.minDate);
+                if(!isNaN(this.props.minDate)) {
+                    datePart = Math.max(datePart, this.props.minDate);
                 }
 
-                if(!isNaN(this.options.maxDate)) {
-                    datePart = Math.min(datePart, this.options.maxDate);
+                if(!isNaN(this.props.maxDate)) {
+                    datePart = Math.min(datePart, this.props.maxDate);
                 }
-
 
             } else {
 
                 timePart = 0;
 
-                let mD = isNaN(this.options.minDate) ? -Infinity : this.options.minDate;
-                let MD = isNaN(this.options.maxDate) ? Infinity : this.options.maxDate;
+                let mD = isNaN(this.props.minDate) ? -Infinity : this.props.minDate;
+                let MD = isNaN(this.props.maxDate) ? Infinity : this.props.maxDate;
 
                 datePart = Math.max(mD, Math.min(MD, timestamp));
 
@@ -699,52 +579,9 @@
 
         },
 
-        getTime: function(){
-            return this.datetime;
-        },
-
-        setTime: function(date){
-
-            this.datetime = new Date(date);
-            this._refresh();
-        },
-
-        setOptions: function(options){
-
-            this.options = Object.assign({}, this.options, options);
-
-            this.datetime = options.hasOwnProperty('datetime') ? new Date(options.datetime) : this.datetime;
-
-            let mD = new Date(this.options.minDate).getTime();
-            let MD = new Date(this.options.maxDate).getTime();
-            let mT = new Date(this.options.minTime).getTime();
-            let MT = new Date(this.options.maxTime).getTime();
-
-
-            this.options.minTime = ( mT % DAYLEN + DAYLEN ) % DAYLEN; // NaN, number [0...86400000 - 1]
-            this.options.maxTime = ( MT % DAYLEN + DAYLEN ) % DAYLEN;
-            this.options.minDate = isNaN(mT) ? mD : mD - mD % DAYLEN;  // NaN, number
-            this.options.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
-
-            if(!isNaN(this.options.minTime)) {
-                this.options.maxTime = isNaN(this.options.maxTime) ? DAYLEN : this.options.maxTime;
-            }
-
-            if(!isNaN(this.options.maxTime)) {
-                this.options.minTime = isNaN(this.options.minTime) ? 0 : this.options.minTime;
-            }
-
-
-            this._refresh();
-
-        },
-
-        destroy: function(){
-            this.element.removeEventListener('mouseup', this._handleMouseDown);
-            this.element.removeEventListener('keydown', this._handleKeydown);
-            this.element.removeEventListener('mousewheel', this._handleMousewheel);
-
-            $(this.element).removeData(pluginName);
+        _notify(){
+            this.props.onChange(this.state.datetime);
+            this.$element.trigger('change', this.state.datetime);
         }
 
 

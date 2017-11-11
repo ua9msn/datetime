@@ -12,21 +12,29 @@
 
         $(function(){
             $('#basic').datetime({
-                datetime:   '01/03/2017 00:01',
-                locale: 'en',
-                format:  'dd L yyyy HH:mm:ss a',
-                timeZoneOffset: (new Date()).getTimezoneOffset()
-              
+                datetime: new Date(1487136412359),
+                locale:   'ru',
+                format:  {
+                    hour12:  false,
+                    hour:    '2-digit',
+                    minute:  '2-digit',
+                    second:  '2-digit',
+                    weekday: 'long',
+                    year:    'numeric',
+                    month:   'long',
+                    day:     'numeric'
+                },
+                useUTC: true,
+
             })
-                .on('change', function(e, arg){
-                    console.log(arg);
-                });
+            .on('change', function(e, arg){
+                 console.log(arg);
+            });
 
-
-        })
+         
+        });
     
     </script>
-
 
 </head>
 <body>

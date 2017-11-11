@@ -1,3 +1,612 @@
-(function(a,b){if('function'==typeof define&&define.amd)define([],b);else if('undefined'!=typeof exports)b();else{b(),a.datetime={exports:{}}.exports}})(this,function(){'use strict';(function(a,b,d,f){function g(G,H){this.$element=G,this.element=G[0],this.currentSpareIndex=0,this.spares=[],this._handleMouseDown=this._handleMouseDown.bind(this),this._handleKeydown=this._handleKeydown.bind(this),this._handleMousewheel=this._handleMousewheel.bind(this),this._init(),this.setOptions(Object.assign({},F,H))}var D=8.64e7,E='datetime',F={datetime:NaN,locale:navigator.language,format:'dd.MM.yyyy HH:mm:ss',timeZoneOffset:0,minDate:NaN,maxDate:NaN,minTime:NaN,maxTime:NaN};g.prototype={_init:function(){this.element.setSelectionRange(0,0),this.element.addEventListener('mouseup',this._handleMouseDown),this.element.addEventListener('keydown',this._handleKeydown),this.element.addEventListener('mousewheel',this._handleMousewheel)},_refresh:function(){this.spares=this._disassembleTimestamp(this.datetime,this.options.locale,this.options.format),this.element.value=this.spares.map(function(I){return I.strval}).join('');var H=this.spares[this.currentSpareIndex];H&&this.element.setSelectionRange(H.offset,H.offset+H.length)},_handleMouseDown:function(H){H.preventDefault(),H.stopPropagation(),this._ensureValueExist(),this.currentSpareIndex=this._calculateSpareIndexAtCaretPosition(H.target.selectionStart,this.spares);var I=this.spares[this.currentSpareIndex];H.target.focus();I&&H.target.setSelectionRange(I.offset,I.offset+I.length)},_ensureValueExist:function(){this.spares.length||(this.datetime=new Date(Date.now()-1e3*(60*this.options.timeZoneOffset)),this._refresh())},_handleKeydown:function(H){this._ensureValueExist();var I=this.spares[this.currentSpareIndex];switch(H.which){case 37:H.preventDefault(),this.currentSpareIndex=this._calculateNextSpareIndex(this.spares,this.currentSpareIndex,-1,function(J){return'Delimiter'!==J.field}),this._refresh();break;case 39:H.preventDefault(),this.currentSpareIndex=this._calculateNextSpareIndex(this.spares,this.currentSpareIndex,1,function(J){return'Delimiter'!==J.field}),this._refresh();break;case 38:H.preventDefault(),this._crement(1,I);break;case 40:H.preventDefault(),this._crement(-1,I);break;case 46:H.preventDefault(),this.datetime=new Date(NaN),this._refresh();break;case 65:case 67:H.ctrlKey||H.preventDefault();break;default:if(H.preventDefault(),!isFinite(H.key))return;if('AMPM'===I.field)return;if('Weekday'===I.field)return;this._modify(+H.key,I);}},_handleMousewheel:function(H){H.preventDefault(),H.stopPropagation(),this._ensureValueExist();var I=this.spares[this.currentSpareIndex],J=Math.sign(H.wheelDelta);this._crement(J,I),this._refresh()},_calculateSpareIndexAtCaretPosition:function(H,I){var J=0,K=I.findIndex(function(L){return'Delimiter'!==L.field});for(K;K<I.length&&('Delimiter'!==I[K].field&&(J=K),!(I[K].offset>=H));K++);return J},_calculateNextSpareIndex:function(H,I,J,K){J=Math.sign(J);var L=I;L/=1;for(var M=I+J;0<=M&&M<H.length;M+=J)if(K(H[M])){L=M;break}return L},_getMaxFieldValueAtDate:function(H,I){var J=H.getFullYear(),K=H.getMonth();switch(I){case'FullYear':return 9999;case'Month':return 12;case'Date':return new Date(J,K+1,0).getDate();case'Hours':return 23;case'Minutes':return 59;case'Seconds':return 59;default:}},_calculateNextValue:function(H,I,J){var K=I.buffer||I.value;'Month'===I.field&&++K;var L=10*K+H,N=[L%1e4,L%1e3,L%100,L%10].reduce(function(R,S){return S<=J?Math.max(R,S):R},0);'Month'===I.field&&(N=N?N-1:K-1),'Date'===I.field&&0===N&&(N=K);var O='setUTC'+I.field,P=new Date(this.datetime);P[O](N);var Q=this._validate(P);if(Q)return P;var R=!0,S=new Date(this.options.maxDate)['getUTC'+I.field](),T=new Date(this.options.minDate)['getUTC'+I.field](),U=new Date(this.options.minTime)['getUTC'+I.field](),V=new Date(this.options.maxTime)['getUTC'+I.field](),W=P['getUTC'+I.field]();return(('FullYear'===I.field||'Month'===I.field||'Date'===I.field)&&(R=!(S<W)&&!(W<T)),('Hours'===I.field||'Minutes'===I.field||'Seconds'===I.field)&&(V>U?R=!((S||V)<W)&&!(W<(U||T)):R=!((S||V)>W)&&!(W>(U||T))),R)?(P=this._fitToLmits(P),P):(I.buffer=10*(I.buffer||0)+H,this.datetime)},_crement:function(H,I){if('Delimiter'!==I.field){var J,K=I.value;'AMPM'===I.field?(J='setUTCHours',K+=12*H):'Weekday'===I.field?(J='setUTCDate',K+=H):(J='setUTC'+I.field,K+=H);var L=new Date(this.datetime);L[J](K);var M=this._fitToLmits(L);M.getTime()!==this.datetime.getTime()&&(this.datetime=M,this._refresh(),this.$element.trigger('change',this.datetime))}},_modify:function(H,I){var J=this._getMaxFieldValueAtDate(this.datetime,I.field),K=this._calculateNextValue(H,I,J);K!==this.datetime&&(this.datetime=K,this._refresh(),this.$element.trigger('change',this.datetime))},_disassembleTimestamp:function(H,I,J){var K=[],L=0;if('Invalid Date'==H)return K;if(H==f)return K;for(var M=J.trim().match(/\w+|\S|\s/g),N=H.getUTCDate(),O=H.getUTCFullYear(),P=H.getUTCHours(),Q=H.getUTCMinutes(),R=H.getUTCMonth(),S=H.getUTCSeconds(),T=H.getTime(),U=0;U<M.length;U++){var V={timeZone:'UTC'},W={},Y=void 0;switch(M[U]){case'yy':V.year='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=O,W.field='FullYear';break;case'yyyy':V={year:'numeric',timeZone:'UTC'},W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=O,W.field='FullYear';break;case'M':V.month='numeric',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MM':V.month='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MMM':V.month='short',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'MMMM':V.month='long',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=R,W.field='Month';break;case'L':V.month='long',V.day='2-digit',W.strval=Intl.DateTimeFormat(I,{day:'2-digit',month:'long'}).format(T).replace(/[\s+\d+\.]/g,''),W.value=R,W.field='Month';break;case'd':V.day='numeric',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Date';break;case'dd':V.day='2-digit',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Date';break;case'EE':V.weekday='short',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'EEE':V.weekday='narrow',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'EEEE':V.weekday='long',W.strval=Intl.DateTimeFormat(I,V).format(T),W.value=N,W.field='Weekday';break;case'h':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(P%12||12),W.value=P,W.field='Hours';break;case'hh':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(P%12||12),W.value=P,W.field='Hours';break;case'k':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(P%12),W.value=P,W.field='Hours';break;case'kk':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(P%12),W.value=P,W.field='Hours';break;case'H':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(P),W.value=P,W.field='Hours';break;case'HH':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(P),W.value=P,W.field='Hours';break;case'm':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(Q),W.value=Q,W.field='Minutes';break;case'mm':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(Q),W.value=Q,W.field='Minutes';break;case's':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:1}).format(S),W.value=S,W.field='Seconds';break;case'ss':W.strval=Intl.NumberFormat(I,{minimumIntegerDigits:2}).format(S),W.value=S,W.field='Seconds';break;case'a':V.hour='numeric',V.minute='numeric',V.hour12=!0,Y=Intl.DateTimeFormat(I+'-u-nu-latn',V).format(T),W.strval=Y.replace(/[\d|:]/g,'').trim(),W.value=P,W.field='AMPM';break;default:W.strval=M[U],W.field='Delimiter';}W.length=W.strval.length,W.offset=L,L+=W.length,K.push(W)}return K},_validate:function(H){var I=H.getTime(),J=(I%D+D)%D,K=I-J,L=!0,M=!0,N=isFinite(this.options.maxDate),O=isFinite(this.options.maxTime),P=isFinite(this.options.minDate),Q=isFinite(this.options.minTime),R=this.options.minTime>this.options.maxTime;return Q&&O&&(L=R?this.options.maxTime>=J||J>=this.options.minTime:this.options.maxTime>=J&&J>=this.options.minTime),P&&!Q&&(M=M&&I>=this.options.minDate),N&&!O&&(M=M&&I<=this.options.maxDate),P&&Q&&(M=M&&K>=this.options.minDate),N&&O&&(M=M&&K<=this.options.maxDate),M&&L},_fitToLmits:function(H){if(isNaN(H))return H;var I=H.getTime(),J=(I%D+D)%D,K=I-J;if(!isNaN(this.options.minTime)&&!isNaN(this.options.maxTime)){if(this.options.maxTime>this.options.minTime)J=Math.max(this.options.minTime,Math.min(this.options.maxTime,J));else{var L=Math.abs(J-this.options.maxTime)<Math.abs(J-this.options.minTime)?this.options.maxTime:this.options.minTime;J=J>this.options.minTime||J<this.options.maxTime?J:L}isNaN(this.options.minDate)||(K=Math.max(K,this.options.minDate)),isNaN(this.options.maxDate)||(K=Math.min(K,this.options.maxDate))}else{J=0;var L=isNaN(this.options.minDate)?-Infinity:this.options.minDate,M=isNaN(this.options.maxDate)?Infinity:this.options.maxDate;K=Math.max(L,Math.min(M,I)),isNaN(K)&&(K=I)}return new Date(K+J)},getTime:function(){return this.datetime},setTime:function(H){this.datetime=new Date(H),this._refresh()},setOptions:function(H){this.options=Object.assign({},this.options,H),this.datetime=H.hasOwnProperty('datetime')?new Date(H.datetime):this.datetime;var I=new Date(this.options.minDate).getTime(),J=new Date(this.options.maxDate).getTime(),K=new Date(this.options.minTime).getTime(),L=new Date(this.options.maxTime).getTime();this.options.minTime=(K%D+D)%D,this.options.maxTime=(L%D+D)%D,this.options.minDate=isNaN(K)?I:I-I%D,this.options.maxDate=isNaN(L)?J:J-J%D,isNaN(this.options.minTime)||(this.options.maxTime=isNaN(this.options.maxTime)?D:this.options.maxTime),isNaN(this.options.maxTime)||(this.options.minTime=isNaN(this.options.minTime)?0:this.options.minTime),this._refresh()},destroy:function(){this.element.removeEventListener('mouseup',this._handleMouseDown),this.element.removeEventListener('keydown',this._handleKeydown),this.element.removeEventListener('mousewheel',this._handleMousewheel),a(this.element).removeData(E)}},a.fn[E]=function(G,H){if(!this.data(E))return'string'==typeof G?void console.warn('datetime plugin expect options object as first argument'):(this.data(E,new g(this,G)),this);var I=this.data(E);return'function'==typeof I[G]?I[G](H):void console.warn('method ',G,' not exist')}})(jQuery,window,document)});
+'use strict';
+
+/**
+ * Created by Serge Balykov (ua9msn@mail.ru) on 2/1/17.
+ */
+
+(function ($, window, document, undefined) {
+
+    /* eslint-disable no-unused-vars */
+    var KEY_TAB = 9,
+        KEY_ENTER = 13,
+        KEY_BACKSPACE = 8,
+        KEY_DELETE = 46,
+        KEY_ESCAPE = 27,
+        KEY_SPACE = 32,
+        KEY_DOWN = 40,
+        KEY_UP = 38,
+        KEY_LEFT = 37,
+        KEY_RIGHT = 39,
+        KEY_A = 65,
+        KEY_C = 67,
+        KEY_V = 86,
+        KEY_D = 68,
+        KEY_F2 = 113,
+        KEY_INSERT = 45;
+    /* eslint-enable no-unused-vars */
+
+    var DAYLEN = 86400000;
+
+    var hashTypeFn = {
+        'weekday': 'Date',
+        'month': 'Month',
+        'day': 'Date',
+        'year': 'FullYear',
+        'hour': 'Hours',
+        'minute': 'Minutes',
+        'second': 'Seconds',
+        'dayperiod': 'Hours'
+    };
+
+    var FORMAT = {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    };
+
+    var pluginName = 'datetime',
+        defaultProps = {
+        datetime: NaN,
+        locale: navigator.language,
+        format: FORMAT,
+        useUTC: true,
+        minDate: NaN,
+        maxDate: NaN,
+        minTime: NaN,
+        maxTime: NaN,
+        onChange: function onChange(t) {}
+    };
+
+    function Plugin(element, props) {
+
+        var _props = Object.assign({}, defaultProps, props);
+
+        this.state = {
+            type: undefined,
+            parts: [],
+            datetime: new Date(_props.datetime)
+        };
+
+        this.$element = element;
+        this.element = element[0];
+
+        this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleKeydown = this._handleKeydown.bind(this);
+        this._handleMousewheel = this._handleMousewheel.bind(this);
+
+        this.element.setSelectionRange(0, 0);
+
+        // this.element.addEventListener('select', this.handleSelection.bind(this));
+        this.element.addEventListener('mouseup', this._handleMouseDown);
+        this.element.addEventListener('keydown', this._handleKeydown);
+        this.element.addEventListener('mousewheel', this._handleMousewheel);
+
+        this.setOptions(_props);
+    }
+
+    Plugin.prototype = {
+
+        setState: function setState(newPartialState, callback) {
+
+            this.state = Object.assign({}, this.state, newPartialState);
+
+            this._render();
+
+            if (callback) {
+                callback.call(this);
+            }
+        },
+
+        setOptions: function setOptions(props) {
+
+            this.props = Object.assign({}, this.props, props);
+
+            var format = Object.assign({}, this.props.format, {
+                timeZone: this.props.useUTC ? 'Etc/UTC' : undefined
+            });
+
+            this.dtFormatter = Intl.DateTimeFormat(this.props.locale, format);
+
+            var state = this._setDateTime(props.datetime);
+
+            this.setState(state);
+
+            var mD = new Date(this.props.minDate).getTime();
+            var MD = new Date(this.props.maxDate).getTime();
+            var mT = new Date(this.props.minTime).getTime();
+            var MT = new Date(this.props.maxTime).getTime();
+
+            this.props.minTime = (mT % DAYLEN + DAYLEN) % DAYLEN; // NaN, number [0...86400000 - 1]
+            this.props.maxTime = (MT % DAYLEN + DAYLEN) % DAYLEN;
+            this.props.minDate = isNaN(mT) ? mD : mD - mD % DAYLEN; // NaN, number
+            this.props.maxDate = isNaN(MT) ? MD : MD - MD % DAYLEN;
+
+            if (!isNaN(this.props.minTime)) {
+                this.props.maxTime = isNaN(this.props.maxTime) ? DAYLEN : this.props.maxTime;
+            }
+
+            if (!isNaN(this.props.maxTime)) {
+                this.props.minTime = isNaN(this.props.minTime) ? 0 : this.props.minTime;
+            }
+
+            this._render();
+        },
+
+        getTime: function getTime() {
+            return this.state.datetime;
+        },
+
+        setTime: function setTime(date) {
+            var newState = this._setDateTime(date);
+            this.setState(newState);
+        },
+
+        _render: function _render() {
+
+            var string = void 0;
+
+            try {
+                string = this.dtFormatter.format(this.state.datetime);
+            } catch (E) {
+                string = '';
+            }
+
+            this.element.value = string;
+
+            this.element.setSelectionRange(0, 0);
+
+            var type = this.state.type || '';
+
+            var partIndex = this.state.parts.findIndex(function (p) {
+                return type ? p.type === type : p.type !== 'literal';
+            });
+
+            if (!~partIndex) return;
+
+            var ss = this.state.parts.slice(0, partIndex).reduce(function (p, c) {
+                return p + c.value.length;
+            }, 0);
+
+            var se = ss + this.state.parts[partIndex].value.length;
+
+            this.element.setSelectionRange(ss, se);
+        },
+
+        _setDateTime: function _setDateTime(datetime) {
+
+            var parts = void 0,
+                type = void 0;
+
+            datetime = new Date(datetime);
+
+            datetime = this._fitToLimits(datetime);
+
+            try {
+                parts = this.dtFormatter.formatToParts(datetime);
+                type = this.state.type || parts.find(function (p) {
+                    return p.type !== 'literal';
+                }).type;
+            } catch (E) {
+                parts = [];
+                type = undefined;
+            }
+
+            return { datetime: datetime, parts: parts, type: type };
+
+            // this.setState({
+            //     type,
+            //     datetime,
+            //     parts,
+            // }, () => {
+            //     this.props.onChange(datetime);
+            // });
+        },
+        _handleMouseDown: function _handleMouseDown(e) {
+
+            e.preventDefault();
+
+            var parts = this.state.parts;
+            var ss = 0,
+                se = 0,
+                cp = e.target.selectionStart;
+
+            var selection = parts.reduce(function (p, c) {
+                ss = se;
+                se = ss + c.value.length;
+
+                if (c.type !== 'literal' && cp >= ss && cp <= se) {
+                    p.type = c.type;
+                    p.ss = ss;
+                    p.se = se;
+                }
+
+                return p;
+            }, { type: '', ss: 0, se: 0 });
+
+            this.state.type = selection.type;
+            // this.state.ss = selection.ss ;
+            // this.state.se = selection.se ;
+
+            this._render();
+        },
+        _handleKeydown: function _handleKeydown(e) {
+
+            switch (e.which) {
+
+                case KEY_LEFT:
+                    {
+                        e.preventDefault();
+                        var type = this._getNextTypeInDirection(-1);
+                        this.setState({ type: type });
+                        break;
+                    }
+
+                case KEY_RIGHT:
+                    {
+                        e.preventDefault();
+                        var _type = this._getNextTypeInDirection(1);
+                        this.setState({ type: _type });
+                        break;
+                    }
+
+                case KEY_UP:
+                    {
+                        e.preventDefault();
+                        var newDatetime = this._crement(1, this.state.type);
+                        var newState = this._setDateTime(newDatetime);
+                        this.setState(newState, this._notify);
+                        break;
+                    }
+                case KEY_DOWN:
+                    {
+                        e.preventDefault();
+                        var _newDatetime = this._crement(-1, this.state.type);
+                        var _newState = this._setDateTime(_newDatetime);
+                        this.setState(_newState, this._notify);
+                        break;
+                    }
+
+                case KEY_DELETE:
+                    {
+                        e.preventDefault();
+                        var _newState2 = this._setDateTime(new Date(NaN));
+                        this.setState(_newState2, this._notify);
+
+                        break;
+                    }
+
+                case KEY_A:
+                case KEY_C:
+                    {
+                        if (!e.ctrlKey) {
+                            e.preventDefault();
+                        }
+                        break;
+                    }
+
+                default:
+                    {
+                        // https://github.com/ua9msn/datetime/issues/2
+                        e.preventDefault();
+                        // ignore non-numbers
+                        if (!isFinite(e.key)) return;
+                        // ignore if nothing
+                        if (!this.state.type) return;
+                        // ignore ampm
+                        if (this.state.type === 'dayperiod') return;
+                        // ignore Weekday
+                        if (this.state.type === 'weekday') return;
+
+                        this._modify(+e.key, this.state.type);
+
+                        break;
+                    }
+            }
+        },
+
+
+        _handleMousewheel: function _handleMousewheel(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var direction = Math.sign(e.wheelDelta);
+
+            var newDatetime = this._crement(direction, this.state.type);
+            var newState = this._setDateTime(newDatetime);
+            this.setState(newState, this._notify);
+
+            this._render();
+        },
+
+        _getNextTypeInDirection: function _getNextTypeInDirection(direction) {
+            var _this = this;
+
+            direction = Math.sign(direction);
+
+            if (!this.state.parts || !this.state.parts.length) return;
+
+            var curIndex = this.state.parts.findIndex(function (p) {
+                return p.type === _this.state.type;
+            });
+
+            if (!~curIndex) {
+                curIndex = this.state.parts.findIndex(function (p) {
+                    return p.type !== 'literal';
+                });
+            }
+
+            var ono = false,
+                index = curIndex;
+
+            while (!ono && this.state.parts[index + direction]) {
+                index += direction;
+                ono = this.state.parts[index] && this.state.parts[index].type !== 'literal';
+            }
+
+            return this.state.parts[ono ? index : curIndex].type;
+        },
+        _crement: function _crement(operator, type) {
+
+            var part = this.state.parts.find(function (p) {
+                return p.type === type;
+            });
+
+            var dt = this.state.datetime.getTime() || this.props.preset || Date.now();
+
+            var proxyTime = new Date(dt);
+
+            if (!part || type === 'literal') return proxyTime;
+
+            var fnName = (this.props.useUTC ? 'UTC' : '') + hashTypeFn[type],
+                newValue = proxyTime['get' + fnName]();
+
+            if (part.type === 'dayperiod') {
+                newValue += operator * 12;
+            } else if (part.type === 'weekday') {
+                newValue += operator;
+            } else {
+                newValue += operator;
+            }
+
+            proxyTime['set' + fnName](newValue);
+
+            return this._fitToLimits(proxyTime);
+        },
+        _modify: function _modify(input, type) {
+
+            var maxValue = this._getMaxFieldValueAtDate(this.state.datetime, type);
+
+            var newDatetime = this._calculateNextValue(input, type, maxValue);
+
+            var newState = this._setDateTime(newDatetime);
+
+            this.setState(newState, this._notify);
+
+            // if(result !== this.state.datetime) {
+            //
+            //     this.setState({
+            //         datetime: result,
+            //         spares : this._disassembleTimestamp(result, this.state.locale, this.state.format)
+            //     }, this._notify)
+            //
+            // }
+        },
+        _getMaxFieldValueAtDate: function _getMaxFieldValueAtDate(date, fieldName) {
+
+            var fy = this.props.useUTC ? date.getUTCFullYear() : date.getFullYear();
+            var m = this.props.useUTC ? date.getUTCMonth() : date.getMonth();
+
+            switch (fieldName) {
+                case 'year':
+                    return 9999;
+                case 'month':
+                    return 12;
+                case 'day':
+                    return new Date(fy, m + 1, 0).getDate(); // get number of days in the month
+                case 'hour':
+                    return 23;
+                case 'minute':
+                    return 59;
+                case 'second':
+                    return 59;
+                default:
+                    break;
+
+            }
+        },
+        _calculateNextValue: function _calculateNextValue(input, type, max) {
+
+            var getFN = 'get' + (this.props.useUTC ? 'UTC' : '') + hashTypeFn[type];
+            var setFN = 'set' + (this.props.useUTC ? 'UTC' : '') + hashTypeFn[type];
+
+            var prev = this.state.datetime[getFN]();
+
+            // in spare month has value as for Date (Jan = 0)
+            // but user input supposed to be 1 for Jan
+            if (type === 'month') {
+                prev = prev + 1;
+            }
+
+            //append number to the end
+            var x = prev * 10 + input;
+
+            // split to summ of digits
+            var arr = [x % 10000, x % 1000, x % 100, x % 10];
+
+            // calculate closest less value
+            var mm = arr.reduce(function (p, c) {
+                return c <= max ? Math.max(p, c) : p;
+            }, 0);
+
+            // rollback month value
+            // but prevent pass 0
+            if (type === 'month') {
+                mm = mm ? mm - 1 : prev - 1;
+            }
+
+            // Date can not be null.
+            // We allow to enter 0 if it makes valid date (10, 20, 30)
+            if (type === 'day' && mm === 0) {
+                mm = prev;
+            }
+
+            var proxyTime = new Date(this.state.datetime);
+
+            proxyTime[setFN](mm);
+
+            var isValid = this._validate(proxyTime);
+
+            if (isValid) {
+                return proxyTime;
+            } else {
+
+                var isFieldValid = true;
+                var maxDateFieldValue = new Date(this.props.maxDate)[getFN]();
+                var minDateFieldValue = new Date(this.props.minDate)[getFN]();
+                var minTimeFieldValue = new Date(this.props.minTime)[getFN](); //NaN, number
+                var maxTimeFieldValue = new Date(this.props.maxTime)[getFN]();
+                var thisValue = proxyTime[getFN]();
+
+                if (type === 'year' || type === 'month' || type === 'day') {
+                    isFieldValid = !(maxDateFieldValue < thisValue) && !(thisValue < minDateFieldValue);
+                }
+
+                if (type === 'hour' || type === 'minute' || type === 'second') {
+
+                    if (maxTimeFieldValue > minTimeFieldValue) {
+                        isFieldValid = !((maxDateFieldValue || maxTimeFieldValue) < thisValue) && !(thisValue < (minTimeFieldValue || minDateFieldValue));
+                    } else {
+                        isFieldValid = !((maxDateFieldValue || maxTimeFieldValue) > thisValue) && !(thisValue > (minTimeFieldValue || minDateFieldValue));
+                    }
+                }
+
+                if (isFieldValid) {
+                    proxyTime = this._fitToLimits(proxyTime);
+                    return proxyTime;
+                }
+
+                // spare.buffer = (spare.buffer || 0) * 10 + input;
+
+                return this.state.datetime;
+            }
+        },
+        _validate: function _validate(datetime) {
+
+            var timestamp = datetime.getTime();
+            var timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN;
+            var datePart = timestamp - timePart;
+
+            var validTime = true,
+                validDate = true;
+
+            var isMaxDate = isFinite(this.props.maxDate);
+            var isMaxTime = isFinite(this.props.maxTime);
+            var isMinDate = isFinite(this.props.minDate);
+            var isMinTime = isFinite(this.props.minTime);
+            var isNightRange = this.state.minTime > this.state.maxTime;
+
+            if (isMinTime && isMaxTime) {
+                validTime = isNightRange ? this.props.maxTime >= timePart || timePart >= this.props.minTime : this.props.maxTime >= timePart && timePart >= this.props.minTime;
+            }
+
+            if (isMinDate && !isMinTime) {
+                validDate = validDate && timestamp >= this.props.minDate;
+            }
+
+            if (isMaxDate && !isMaxTime) {
+                validDate = validDate && timestamp <= this.props.maxDate;
+            }
+
+            if (isMinDate && isMinTime) {
+                validDate = validDate && datePart >= this.props.minDate;
+            }
+
+            if (isMaxDate && isMaxTime) {
+                validDate = validDate && datePart <= this.props.maxDate;
+            }
+
+            return validDate && validTime;
+        },
+        _fitToLimits: function _fitToLimits(datetime) {
+
+            if (isNaN(datetime)) return datetime;
+
+            var timestamp = datetime.getTime();
+
+            var timePart = (timestamp % DAYLEN + DAYLEN) % DAYLEN; //this is trick for negative timestamps
+            var datePart = timestamp - timePart;
+
+            if (!isNaN(this.props.minTime) && !isNaN(this.props.maxTime)) {
+
+                if (this.props.maxTime > this.props.minTime) {
+                    timePart = Math.max(this.props.minTime, Math.min(this.props.maxTime, timePart));
+                } else {
+                    var nearestLimit = Math.abs(timePart - this.props.maxTime) < Math.abs(timePart - this.props.minTime) ? this.props.maxTime : this.props.minTime;
+                    timePart = timePart > this.props.minTime || timePart < this.props.maxTime ? timePart : nearestLimit;
+                }
+
+                if (!isNaN(this.props.minDate)) {
+                    datePart = Math.max(datePart, this.props.minDate);
+                }
+
+                if (!isNaN(this.props.maxDate)) {
+                    datePart = Math.min(datePart, this.props.maxDate);
+                }
+            } else {
+
+                timePart = 0;
+
+                var mD = isNaN(this.props.minDate) ? -Infinity : this.props.minDate;
+                var MD = isNaN(this.props.maxDate) ? Infinity : this.props.maxDate;
+
+                datePart = Math.max(mD, Math.min(MD, timestamp));
+
+                if (isNaN(datePart)) {
+                    datePart = timestamp;
+                }
+            }
+
+            return new Date(datePart + timePart);
+        },
+        _notify: function _notify() {
+            this.props.onChange(this.state.datetime);
+            this.$element.trigger('change', this.state.datetime);
+        }
+    };
+
+    // A really lightweight plugin wrapper around the constructor,
+    // preventing against multiple instantiations
+    $.fn[pluginName] = function (method, options) {
+
+        /* eslint-disable no-console */
+        if (!this.data(pluginName)) {
+
+            if (typeof method === 'string') {
+                console.warn('datetime plugin expect options object as first argument');
+                return;
+            }
+
+            this.data(pluginName, new Plugin(this, method));
+
+            return this;
+        } else {
+            //calling method
+            var instance = this.data(pluginName);
+
+            if (typeof instance[method] !== 'function') {
+                console.warn('method ', method, ' not exist');
+                return;
+            }
+
+            return instance[method](options);
+        }
+        /* eslint-enable no-console */
+    };
+})(jQuery, window, document);
 
 //# sourceMappingURL=datetime.stg.js.map

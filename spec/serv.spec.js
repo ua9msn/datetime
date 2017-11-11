@@ -8,6 +8,16 @@ describe('empty option suite', function(){
 
     var $input;
 
+    const format =  {
+        hour12:  true,
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        weekday: 'long',
+        year:    'numeric',
+        month:   'long',
+        day:     'numeric'
+    };
 
     // Since I've got the problem with running tests both with karma and test runner,
     // due to the path and ajax loading of local files, I set the fixture as the string here.
@@ -52,7 +62,7 @@ describe('empty option suite', function(){
 
     });
 
-       
+
 
 
 });

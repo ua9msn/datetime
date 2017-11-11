@@ -3,11 +3,13 @@ Enter formatted date and time without pickers.
 
 [![Build Status](https://travis-ci.org/ua9msn/datetime.svg?branch=master)](https://travis-ci.org/ua9msn/datetime)
 
+**Version 2 contains breacking changes.**
+
 For the demo and docs please visit https://ua9msn.github.io/datetime
 
 ### What is it
 The jQuery plugin which makes date/time input from text one. 
-Inspired by incredible, from user experience point of view, "dateentry" plugin http://keith-wood.name/timeEntry.html
+Inspired by "dateentry" plugin http://keith-wood.name/timeEntry.html
 
 ### Why is it
 The mentioned above plugin is outdated. I tried to use it with a webpack, and failed. 
