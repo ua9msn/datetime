@@ -111,10 +111,6 @@
 
             this.dtFormatter = Intl.DateTimeFormat(this.props.locale, format);
 
-            const state = this._setDateTime( props.datetime);
-
-            this.setState(state);
-
             let mD = new Date(this.props.minDate).getTime();
             let MD = new Date(this.props.maxDate).getTime();
             let mT = new Date(this.props.minTime).getTime();
@@ -132,6 +128,11 @@
             if(!isNaN(this.props.maxTime)) {
                 this.props.minTime = isNaN(this.props.minTime) ? 0 : this.props.minTime;
             }
+
+            const state = this._setDateTime( 'datetime' in props ? props.datetime : this.state.datetime );
+
+            this.setState(state);
+
 
             this._render();
 
