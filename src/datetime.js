@@ -146,6 +146,15 @@
             this.setState(newState);
         },
 
+        destroy(){
+
+            this.element.removeEventListener('mouseup', this._handleMouseDown);
+            this.element.removeEventListener('keydown', this._handleKeydown);
+            this.element.removeEventListener('mousewheel', this._handleMousewheel);
+            this.$element.off();
+            this.$element.data(pluginName, null);
+        },
+
         _render: function(){
 
             let string;
@@ -345,7 +354,7 @@
 
             const part = this.state.parts.find(p => p.type === type);
 
-            const dt = this.state.datetime.getTime() || this.props.preset || Date.now();
+            const dt = ( !isNaN(this.state.datetime) && this.state.datetime ) || this.props.preset || Date.now();
 
             const proxyTime = new Date(dt);
 

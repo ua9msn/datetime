@@ -146,6 +146,16 @@
             this.setState(newState);
         },
 
+        destroy: function destroy() {
+
+            this.element.removeEventListener('mouseup', this._handleMouseDown);
+            this.element.removeEventListener('keydown', this._handleKeydown);
+            this.element.removeEventListener('mousewheel', this._handleMousewheel);
+            this.$element.off();
+            this.$element.data(pluginName, null);
+        },
+
+
         _render: function _render() {
 
             var string = void 0;
@@ -356,7 +366,7 @@
                 return p.type === type;
             });
 
-            var dt = this.state.datetime.getTime() || this.props.preset || Date.now();
+            var dt = !isNaN(this.state.datetime) && this.state.datetime || this.props.preset || Date.now();
 
             var proxyTime = new Date(dt);
 

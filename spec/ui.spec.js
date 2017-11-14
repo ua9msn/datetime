@@ -49,5 +49,26 @@ describe('UI suite', function(){
 
     });
 
+    it('zero unix time', function(){
+        const dt = new Date(0);
+        plug.setTime(dt);
+
+        $input[0].setSelectionRange(0,0);
+
+        let fakeEvent = {
+            preventDefault: function(){},
+            stopPropagation: function(){},
+            target: $input[0],
+            which: 38 // key up
+        };
+
+        plug._handleKeydown(fakeEvent);
+
+        const d =  plug.getTime();
+
+        expect(d.getTime()).toEqual(86400000);
+
+
+    });
 
 });
