@@ -46,6 +46,8 @@ describe('Events suite', function(){
             target: $input[0]
         };
 
+        $input[0].focus();
+
         $input[0].setSelectionRange(4,4);
 
         plug._handleMouseDown(fakeEvent);
