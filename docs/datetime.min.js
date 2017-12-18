@@ -170,6 +170,8 @@
 
             this.element.setSelectionRange(0, 0);
 
+            if (document.activeElement !== this.element) return; //avoid selection on element without focus (Firefox)
+
             var type = this.state.type || '';
 
             var partIndex = this.state.parts.findIndex(function (p) {

@@ -170,6 +170,8 @@
 
             this.element.setSelectionRange(0, 0);
 
+            if(document.activeElement !== this.element) return; //avoid selection on element without focus (Firefox)
+
             const type = this.state.type || '';
 
             const partIndex = this.state.parts.findIndex(p => type ? p.type === type : p.type !== 'literal');
