@@ -224,7 +224,7 @@
                 const dt = new Date();
 
                 if(this.props.useUTC){
-                    dt.setHours( dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds());
+                    dt.setUTCHours( dt.getHours(), dt.getMinutes(), dt.getSeconds());
                 }
 
                 this.setTime( dt );
