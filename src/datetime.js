@@ -219,6 +219,18 @@
 
             e.preventDefault();
 
+            if(isNaN(this.state.datetime)){
+
+                const dt = new Date();
+
+                if(this.props.useUTC){
+                    dt.setHours( dt.getUTCHours(), dt.getUTCMinutes(), dt.getUTCSeconds());
+                }
+
+                this.setTime( dt );
+                return;
+            }
+
             const parts = this.state.parts;
             let ss      = 0,
                   se    = 0,
@@ -302,7 +314,9 @@
                     // ignore non-numbers
                     if(!isFinite(e.key)) return;
                     // ignore if nothing
-                    if(!this.state.type) return;
+                    if(!this.state.type) {
+
+                    }
                     // ignore ampm
                     if(this.state.type === 'dayperiod') return;
                     // ignore Weekday
