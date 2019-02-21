@@ -107,7 +107,7 @@
             this.props = Object.assign({}, this.props, props);
 
             const format = Object.assign( {}, this.props.format, {
-                timeZone: this.props.useUTC ? 'Etc/UTC': undefined
+                timeZone: this.props.useUTC ? 'UTC': undefined
             });
 
             this.dtFormatter = Intl.DateTimeFormat(this.props.locale, format);
